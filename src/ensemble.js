@@ -29,6 +29,10 @@ class Ensemble {
         this.conductor = null;
       } else if (ws.data?.role === 'musician') {
         this.musicians.delete(ws);
+        this.conductor.send(JSON.stringify({
+          type: 'disconnect',
+          musicianId: ws.id,
+        }));
         logger.info('Musician removed', { remaining: this.musicians.size });
       }
 

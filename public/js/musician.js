@@ -15,6 +15,8 @@ const motionTracker = new MotionTracker();
 
 let active = false;
 
+window._cc_project_role = 'musician';
+
 // Socket connection handlers
 socket.on('connect', () => {
     statusEl.textContent = 'Connected';
@@ -64,7 +66,6 @@ document.body.addEventListener('touchend', () => {
     motionTracker.stopTracking();
 });
 
-// Start/stop button
 startBtn.addEventListener('click', async () => {
     if (active) {
         active = false;

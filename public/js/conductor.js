@@ -15,6 +15,8 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
+window._cc_project_role = 'musician';
+
 // Socket handlers
 socket.on('connect', () => {
     socket.emit('message', JSON.stringify({
@@ -30,6 +32,8 @@ socket.on('message', (msg) => {
     } else if (data.type === 'sensorData') {
         musicians.set(data.musicianId, data.data);
         dataEl.textContent = JSON.stringify(data, null, 2);
+    } else if (data.type === 'disconnect') {
+        musicians.delete(data.musicianId);
     }
 });
 
