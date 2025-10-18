@@ -1,15 +1,14 @@
 #import "@preview/ilm:1.4.1": *
 
+#let piece = "Untitled"
+
 #set text(lang: "en")
 #show raw: set text(font: ("JetBrains Mono"), size: 9pt)
 
 #show: ilm.with(
-  title: [Untitled\ Collaborative Piece],
+  title: [#piece],
   author: "Victor Quintana",
   date: datetime(year: 2025, month: 10, day: 18),
-  // abstract: [
-  //   'Ilm (Urdu: #text(lang: "ur", font: ("Noto Nastaliq Urdu", "Noto Naskh Arabic"), size: 0.8em)[عِلْم]) is the Urdu term for knowledge. In its general usage, 'ilm may refer to knowledge of any specific thing or any form of "learning". Subsequently, the term came to be used to refer to various categories of "sciences", especially when used in its plural form ('ulum).
-  // ]
 )
 
 = Introduction
@@ -93,4 +92,68 @@ the sum of its parts. She explores the blurry line between order and chaos.
 )
 
 == Manfred Mohr
+
+Another pioneer in digital art, Manfred Mohr began programming his first computer drawings
+in 1969, after being encouraged by an electronic music composer friend of his.
+
+In 1971 he showcased his drawings in the Museum of Modern art in Paris, by feeding precalculated
+data from a magnetic tape to a plotter. At that time it was not possible to have the computer make the
+art in real time, as they needed special air conditioning and would be unfeasible
+to transport to the museum.
+
+#figure(
+  image("demoPlotlg-mohr.jpg", width: 60%),
+  caption: [An example of the plots shown at Mohr's show from May 11 - June 6, 1971]
+)
+
+== Sol LeWitt
+
+LeWitt took another approach to algorithmic art. Instead of using a computer as the medium to
+transform an algorithm to art, he used people.
+
+In 1968, he began to create works of art by making instructions, sometimes accompanied by diagrams,
+and getting people other than him to follow these instructions. These works would always be
+done on a wall or walls of an exibition or public space, being painted over or taken down after
+some time, to be reproduced elsewhere.
+
+While the instructions do not explicitly include randomness compared to the previous
+artists' works, LeWitt introduces randomness in the way people interpret his guidelines. According to
+him, "each person draws a line differently and each person understands words differently."
+
+#figure(
+  image("wall-drawing-boston-museum-lewitt.jpg", width: 60%),
+  caption: [Instructions for making #emph("Wall Drawing, Boston Museum") by Sol LeWitt]
+)
+
+Even long after his passing, new works of his are being created. All it takes are the
+instructions, a couple people, and a wall.
+
+= #piece
+
+Like Sol LeWitt, I wanted to try and make the art a collaborative process, not just during
+its creation. To this effect, I created a platform that can use the audience's mobile devices
+to influence the piece, both in appearance and sound.
+
+My intention was not only to make the piece more interesting, but observe how
+people would react to having direct control over an art piece, and the sound it makes.
+Would it make music? Would it be art?
+
+== Implementation
+
+The piece involves a webpage accessed from the participants' mobile phones, that
+records the device's orientation and acceleration information. This data must
+then be sent to and processed by a server. It is forwarded to the exibition's computer, which
+uses this data to influence small artpieces and audio, each a 'sketch'. The exibition
+cycles a set of these sketches periodically, keeping the theme of audience interaction.
+
+The server uses Node.js with Express and Socket.IO to serve the webpage and connect
+to clients. The exhibition computer is connected with authentication to ensure only one client
+can display the artwork. Participants can connect to the server freely, through a direct link or
+a QR code.
+
+By using Javascript's native events, participants can interact with the work by touching the screen and rotating or
+moving their phone. The way it interacts with the artwork and sound displayed
+on the exhibition computer is determined by the specific 'sketch' active at the time.
+
+
 
