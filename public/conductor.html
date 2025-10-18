@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conductor</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            overflow: hidden;
+        }
+        #header {
+            padding: 10px 20px;
+            border-bottom: 1px solid #0f0;
+        }
+        #canvas {
+            display: block;
+        }
+        #data {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 10px;
+            opacity: 0.5;
+            white-space: pre;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="header">
+        <span>CONDUCTOR</span> | Musicians: <span id="count">0</span>
+    </div>
+    <canvas id="canvas"></canvas>
+    <pre id="data"></pre>
+
+    <script src="/js/conductor.js" defer></script>
+</body>
+</html>

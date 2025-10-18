@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musician</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0ff;
+            padding: 20px;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <h1>MUSICIAN</h1>
+    <div id="status">Connecting...</div>
+    <button id="start">Start Sending Data</button>
+    <pre id="debug"></pre>
+    <script src="/js/musician.js" type="module"></script>
+</body>
+</html>

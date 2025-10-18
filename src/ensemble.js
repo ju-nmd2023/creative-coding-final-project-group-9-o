@@ -13,26 +13,31 @@ class Ensemble {
         data = JSON.parse(msg);
         if (data.type === 'identify') {
           this.register(ws, data);
+        } else if (data.type === 'sensorData') {
+          this.broadcastSensorData(ws, data);
         }
       } catch (err) {
         logger.error('Error parsing message from websocket: ', err);
       }
     });
 
-    ws.on('close', () => {
-      if (ws.data.role === 'conductor') {
+    ws.on('disconnect', () => {
+      logger.info('Client disconnected', { id: ws.id, role: ws.data?.role });
+
+      if (ws.data?.role === 'conductor') {
         logger.warn('Conductor disconnected');
         this.conductor = null;
-      } else {
+      } else if (ws.data?.role === 'musician') {
         this.musicians.delete(ws);
+        logger.info('Musician removed', { remaining: this.musicians.size });
       }
+
+      this.updateClientCount();
     });
 
     ws.on('error', err => {
       logger.error('Websocket error: ', err);
     });
-
-    this.updateClientCount();
   }
 
   register(ws, data) {
@@ -54,6 +59,16 @@ class Ensemble {
       this.conductor.send(JSON.stringify({
         type: 'clientCount',
         count: this.musicians.size
+      }));
+    }
+  }
+
+  broadcastSensorData(ws, data) {
+    if (this.conductor && ws.data.role === 'musician') {
+      this.conductor.send(JSON.stringify({
+        type: 'sensorData',
+        musicianId: ws.id,
+        data: data.payload
       }));
     }
   }
