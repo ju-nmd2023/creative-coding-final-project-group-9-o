@@ -13,6 +13,7 @@
           pkgs.nodejs_22
           pkgs.typescript
           pkgs.pnpm
+          pkgs.typst
         ];
       };
     };
