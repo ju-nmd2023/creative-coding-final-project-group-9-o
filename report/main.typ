@@ -38,25 +38,25 @@ endless amounts of knowledge. Place something into those hands, and knowledge is
 a limit. We were able to transcend our needs for survival. We chose to explore our world,
 understand its nature, and create not for our survival, but for ourselves.
 
-I have always been fascinated with instruments and music. I love the way human beings
+I have always been fascinated with art, especially instruments and music. I love the way human beings
 can learn to play an instrument as a part of their own body. I love even more the fact
 that our ears have apparently been designed with an attunement to music, to rhythms and harmony.
-And what I love most is that music is a language: it transmits information, it has
+And what I love most about music, and art in general, is that it is a language: it transmits information, it has
 certain rules, and it is unique to every culture, ethnicity, country or group of people.
 
-Most people love music. But most people don't play it. I feel most people would like
-to play music. Of course, learning an instrument, or even learning to 'speak' the language of
-music takes both time and patience, which most people don't have enough of. Some people don't
-even try. I want to change that. And while I most definitely can't, not with a hasty,
-bodged prototype I put together in less than a week, the intention is there. And who's
-to say it wouldn't be interesting to see?
+Most people love art. But most people don't make it. I feel most people would like
+to make art. Of course, picking up a pencil and learning to draw, or learning an instrument,
+or in general learning to 'speak' the language of art takes both time and patience,
+which most people don't have enough of. Some people don't even try. I want to change that.
+I want to see what kind of art the average person can make, when given the chance to do so.
+While I don't proclaim myself an artist, per se, I feel I can be an interpreter of sorts, using a computer
+as my medium.
 
 #pagebreak()
 
 = Background
 
-Of course, music is not the only type of expression. Visual art has been present
-as long, if not longer. Similarly, it has been a space to explore diferent mediums, both
+Visual art has been a part of humanity for a very, very long time. It has always been a space to explore diferent mediums, both
 to put the art in (canvas, paper, cave walls), what the art is made of (oil-based paints with
 dyes, objects, the shadows those objects cast), and the tools to make it (hands, fingers, brushes,
 industrial machinery, and computers). It only took a few years since computers became generally available
