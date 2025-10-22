@@ -1,4 +1,5 @@
-const socket = io();
+import { decodeSensorData } from './protocol.js';
+
 const dataEl = document.getElementById('data');
 const countEl = document.getElementById('count');
 const canvas = document.getElementById('canvas');
@@ -15,27 +16,45 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-window._cc_project_role = 'musician';
+window._cc_project_role = 'conductor';
 
-// Socket handlers
-socket.on('connect', () => {
-    socket.emit('message', JSON.stringify({
+// WebSocket connection
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const socket = new WebSocket(`${protocol}//${window.location.host}`);
+socket.binaryType = 'arraybuffer';
+
+// WebSocket handlers
+socket.onopen = () => {
+    socket.send(JSON.stringify({
         type: 'identify',
         role: 'conductor'
     }));
-});
+};
 
-socket.on('message', (msg) => {
-    const data = JSON.parse(msg);
-    if (data.type === 'clientCount') {
-        countEl.textContent = data.count;
-    } else if (data.type === 'sensorData') {
-        musicians.set(data.musicianId, data.data);
+socket.onmessage = (event) => {
+    if (typeof event.data === 'string') {
+        // Text message - control message
+        const data = JSON.parse(event.data);
+        if (data.type === 'clientCount') {
+            countEl.textContent = data.count;
+        } else if (data.type === 'disconnect') {
+            musicians.delete(data.musicianId);
+        }
+    } else {
+        // Binary message - sensor data
+        const data = decodeSensorData(event.data);
+        musicians.set(data.musicianId, data);
         dataEl.textContent = JSON.stringify(data, null, 2);
-    } else if (data.type === 'disconnect') {
-        musicians.delete(data.musicianId);
     }
-});
+};
+
+socket.onclose = () => {
+    console.log('WebSocket disconnected');
+};
+
+socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+};
 
 // Draw acceleration bars for a musician
 function drawAccelerationBars(x, y, accel, musicianId) {
@@ -110,9 +129,9 @@ function draw() {
         ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
 
         if (state.tracking) {
-            // Draw position as circle
-            const x = centerX + state.position.x * scale;
-            const y = centerY + state.position.y * scale;
+            // Draw velocity as circle and arrow from center
+            const x = centerX;
+            const y = centerY + i * 120 - 60;
 
             ctx.beginPath();
             ctx.arc(x, y, 10, 0, Math.PI * 2);

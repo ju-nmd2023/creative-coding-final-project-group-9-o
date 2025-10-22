@@ -1,13 +1,16 @@
 import { SensorManager } from './sensor-manager.js';
 import { MotionTracker } from './motion-tracker.js';
+import { encodeSensorData } from './protocol.js';
 
 // UI elements
 const statusEl = document.getElementById('status');
 const debugEl = document.getElementById('debug');
 const startBtn = document.getElementById('start');
 
-// Socket connection
-const socket = io();
+// WebSocket connection
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const socket = new WebSocket(`${protocol}//${window.location.host}`);
+socket.binaryType = 'arraybuffer';
 
 // Core systems
 const sensorManager = new SensorManager();
@@ -17,18 +20,23 @@ let active = false;
 
 window._cc_project_role = 'musician';
 
-// Socket connection handlers
-socket.on('connect', () => {
+// WebSocket connection handlers
+socket.onopen = () => {
     statusEl.textContent = 'Connected';
-    socket.emit('message', JSON.stringify({
+    socket.send(JSON.stringify({
         type: 'identify',
         role: 'musician'
     }));
-});
+};
 
-socket.on('disconnect', () => {
+socket.onclose = () => {
     statusEl.textContent = 'Disconnected';
-});
+};
+
+socket.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    statusEl.textContent = 'Connection Error';
+};
 
 // Wire up sensor data to motion tracker
 sensorManager.on('orientation', (data) => {
@@ -45,14 +53,14 @@ sensorManager.on('error', (message) => {
     alert(message);
 });
 
-// Send state updates to server
+// Send state updates to server as binary
 motionTracker.on('update', (state) => {
     debugEl.textContent = JSON.stringify(state, null, 2);
 
-    socket.emit('message', JSON.stringify({
-        type: 'sensorData',
-        payload: state
-    }));
+    if (socket.readyState === WebSocket.OPEN) {
+        const binaryData = encodeSensorData(state, false); // TODO: add shake detection
+        socket.send(binaryData);
+    }
 });
 
 // Touch handlers for position tracking

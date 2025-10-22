@@ -74,9 +74,8 @@ export class SensorManager {
             if (e.acceleration) {
                 this.listeners.motion.forEach(cb => cb({
                     x: e.acceleration.x,
-                    y: 0, z: 0,
-                    // y: e.acceleration.y,
-                    // z: e.acceleration.z
+                    y: e.acceleration.y,
+                    z: e.acceleration.z
                 }));
             }
         };

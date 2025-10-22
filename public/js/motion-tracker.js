@@ -6,7 +6,7 @@
  * Uses fixed timestep loop for consistent integration.
  */
 export class MotionTracker {
-    constructor(updateRate = 60, deadzone = 0.5) {
+    constructor(updateRate = 24, deadzone = 0.5) {
         this.tracking = false;
         this.position = { x: 0, y: 0, z: 0 };
         this.velocity = { x: 0, y: 0, z: 0 };
