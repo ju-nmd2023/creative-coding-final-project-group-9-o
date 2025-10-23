@@ -36,6 +36,110 @@
     <canvas id="canvas"></canvas>
     <pre id="data"></pre>
 
+    <script src="https://unpkg.com/tone"></script>
     <script src="/js/conductor.js" type="module"></script>
+    <script type="module">
+        import { musicians } from '/js/conductor.js';
+
+        // Canvas setup for debug visualization
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const countEl = document.getElementById('count');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Update musician count on join/disconnect
+        window.addEventListener('musician', (e) => {
+            countEl.textContent = musicians.size;
+        });
+
+        // Convert quaternion to Euler angles (in degrees)
+        function quaternionToEuler(q) {
+            // Roll (x-axis rotation)
+            const sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
+            const cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
+            const roll = Math.atan2(sinr_cosp, cosr_cosp) * 180 / Math.PI;
+
+            // Pitch (y-axis rotation)
+            const sinp = 2 * (q.w * q.y - q.z * q.x);
+            const pitch = Math.asin(Math.max(-1, Math.min(1, sinp))) * 180 / Math.PI;
+
+            // Yaw (z-axis rotation)
+            const siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+            const cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+            const yaw = Math.atan2(siny_cosp, cosy_cosp) * 180 / Math.PI;
+
+            return { roll, pitch, yaw };
+        }
+
+        // Draw a simple rotating line for each musician
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let i = 0;
+            for (const [musicianId, data] of musicians) {
+                const x = 150 + (i % 4) * 250;
+                const y = 150 + Math.floor(i / 4) * 250;
+                const lineLength = 80;
+
+                // Convert quaternion to Euler
+                const euler = quaternionToEuler(data.quaternion);
+
+                // Draw musician ID
+                ctx.fillStyle = '#0f0';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Musician ${musicianId.substring(0, 8)}`, x, y - 100);
+
+                // Draw roll (left-right tilt / gamma) as a rotating line
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(euler.roll * Math.PI / 180);
+
+                ctx.strokeStyle = '#0ff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(lineLength, 0);
+                ctx.stroke();
+
+                // Draw arrow head
+                ctx.beginPath();
+                ctx.moveTo(lineLength, 0);
+                ctx.lineTo(lineLength - 10, -5);
+                ctx.lineTo(lineLength - 10, 5);
+                ctx.closePath();
+                ctx.fillStyle = '#0ff';
+                ctx.fill();
+
+                ctx.restore();
+
+                // Display values as text
+                ctx.fillStyle = '#0f0';
+                ctx.font = '10px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Roll: ${euler.roll.toFixed(1)}°`, x, y + 50);
+                ctx.fillText(`Pitch: ${euler.pitch.toFixed(1)}°`, x, y + 65);
+                ctx.fillText(`Yaw: ${euler.yaw.toFixed(1)}°`, x, y + 80);
+
+                // Display rotation rates
+                ctx.fillText(`α: ${data.rotationRate.alpha.toFixed(1)}°/s`, x, y + 95);
+                ctx.fillText(`β: ${data.rotationRate.beta.toFixed(1)}°/s`, x, y + 110);
+                ctx.fillText(`γ: ${data.rotationRate.gamma.toFixed(1)}°/s`, x, y + 125);
+
+                i++;
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
 </body>
 </html>

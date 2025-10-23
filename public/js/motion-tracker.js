@@ -1,18 +1,16 @@
 /**
- * MotionTracker - Abstracts device sensor integration and position tracking
+ * MotionTracker - Abstracts device sensor integration
  *
- * Tracks relative position by integrating accelerometer data while touch is active.
- * Position resets when touch is released to prevent drift accumulation.
+ * Maintains orientation as a quaternion calculated from rotation rate.
  * Uses fixed timestep loop for consistent integration.
  */
 export class MotionTracker {
-    constructor(updateRate = 24, deadzone = 0.5) {
+    constructor(updateRate = 24) {
         this.tracking = false;
-        this.position = { x: 0, y: 0, z: 0 };
-        this.velocity = { x: 0, y: 0, z: 0 };
-        this.orientation = { alpha: 0, beta: 0, gamma: 0 };
+        this.quaternion = { x: 0, y: 0, z: 0, w: 1 }; // Identity quaternion
 
         this.acceleration = { x: 0, y: 0, z: 0 };
+        this.rotationRate = { alpha: 0, beta: 0, gamma: 0 }; // deg/s
 
         this.listeners = {
             update: []
@@ -20,14 +18,13 @@ export class MotionTracker {
 
         this.updateRate = updateRate;
         this.dt = 1 / updateRate;
-        this.deadzone = deadzone; // m/s² threshold
         this.intervalId = null;
     }
 
     /**
      * Register callback for state updates
      * @param {string} event - Event name ('update')
-     * @param {function} callback - Called with {acceleration, position, velocity, orientation}
+     * @param {function} callback - Called with {tracking, acceleration, rotationRate, quaternion}
      */
     on(event, callback) {
         if (this.listeners[event]) {
@@ -62,9 +59,6 @@ export class MotionTracker {
      */
     startTracking() {
         this.tracking = true;
-        this.position = { x: 0, y: 0, z: 0 };
-        this.velocity = { x: 0, y: 0, z: 0 };
-        this.acceleration = { x: 0, y: 0, z: 0 };
     }
 
     /**
@@ -75,10 +69,14 @@ export class MotionTracker {
     }
 
     /**
-     * Update orientation from device orientation event
+     * Update rotation rate from device motion event
      */
-    updateOrientation(alpha, beta, gamma) {
-        this.orientation = { alpha, beta, gamma };
+    updateRotationRate(alpha, beta, gamma) {
+        this.rotationRate = {
+            alpha: alpha || 0,
+            beta: beta || 0,
+            gamma: gamma || 0
+        };
     }
 
     /**
@@ -96,76 +94,61 @@ export class MotionTracker {
      * Perform integration step with fixed timestep
      */
     _integrate() {
-        if (!this.tracking) return;
-
         const dt = this.dt;
 
-        // Rotate acceleration from device frame to world frame
-        const worldAccel = this._rotateToWorldFrame(
-            this.acceleration,
-            this.orientation
-        );
-
-        // Apply deadzone to reduce noise and drift
-        const filteredAccel = this._applyDeadzone(worldAccel);
-
-        // Integrate acceleration to get velocity
-        this.velocity.x += this.acceleration.x * dt;
-        this.velocity.y += this.acceleration.y * dt;
-        this.velocity.z += this.acceleration.z * dt;
-
-        // Integrate velocity to get position
-        this.position.x += this.velocity.x * dt;
-        this.position.y += this.velocity.y * dt;
-        this.position.z += this.velocity.z * dt;
+        // Update quaternion from rotation rate
+        this._updateQuaternion(dt);
     }
 
+
     /**
-     * Apply deadzone to acceleration to ignore small values
+     * Update quaternion from rotation rate (gyroscope)
+     * Integrates angular velocity to update orientation quaternion
      */
-    _applyDeadzone(accel) {
-        return {
-            x: Math.abs(accel.x) < this.deadzone ? 0 : accel.x,
-            y: Math.abs(accel.y) < this.deadzone ? 0 : accel.y,
-            z: Math.abs(accel.z) < this.deadzone ? 0 : accel.z
+    _updateQuaternion(dt) {
+        // Convert rotation rate from degrees/s to radians/s
+        const wx = this.rotationRate.alpha * Math.PI / 180;
+        const wy = this.rotationRate.beta * Math.PI / 180;
+        const wz = this.rotationRate.gamma * Math.PI / 180;
+
+        // Current quaternion
+        const q = this.quaternion;
+
+        // Quaternion derivative from angular velocity
+        // q_dot = 0.5 * omega * q
+        // where omega is the quaternion (0, wx, wy, wz)
+        const qDot = {
+            w: 0.5 * (-q.x * wx - q.y * wy - q.z * wz),
+            x: 0.5 * (q.w * wx + q.y * wz - q.z * wy),
+            y: 0.5 * (q.w * wy + q.z * wx - q.x * wz),
+            z: 0.5 * (q.w * wz + q.x * wy - q.y * wx)
         };
+
+        // Integrate using Euler method
+        this.quaternion.w += qDot.w * dt;
+        this.quaternion.x += qDot.x * dt;
+        this.quaternion.y += qDot.y * dt;
+        this.quaternion.z += qDot.z * dt;
+
+        // Normalize to prevent drift
+        this._normalizeQuaternion();
     }
 
     /**
-     * Rotate acceleration vector from device frame to Earth frame
-     * using device orientation (alpha, beta, gamma)
+     * Normalize quaternion to unit length
      */
-    _rotateToWorldFrame(accel, orientation) {
-        // Convert angles to radians
-        const alpha = (orientation.alpha || 0) * Math.PI / 180;
-        const beta = (orientation.beta || 0) * Math.PI / 180;
-        const gamma = (orientation.gamma || 0) * Math.PI / 180;
+    _normalizeQuaternion() {
+        const q = this.quaternion;
+        const mag = Math.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
 
-        // Rotation matrices for device orientation
-        // Order: Z (alpha) -> X (beta) -> Y (gamma)
-
-        const ca = Math.cos(alpha);
-        const sa = Math.sin(alpha);
-        const cb = Math.cos(beta);
-        const sb = Math.sin(beta);
-        const cg = Math.cos(gamma);
-        const sg = Math.sin(gamma);
-
-        // Combined rotation matrix (simplified)
-        const x = accel.x * (ca * cg + sa * sb * sg) +
-                  accel.y * (cb * sg) +
-                  accel.z * (sa * cg - ca * sb * sg);
-
-        const y = accel.x * (-ca * sg + sa * sb * cg) +
-                  accel.y * (cb * cg) +
-                  accel.z * (-sa * sg - ca * sb * cg);
-
-        const z = accel.x * (sa * cb) +
-                  accel.y * (-sb) +
-                  accel.z * (ca * cb);
-
-        return { x, y, z };
+        if (mag > 0) {
+            q.w /= mag;
+            q.x /= mag;
+            q.y /= mag;
+            q.z /= mag;
+        }
     }
+
 
     /**
      * Get current state snapshot
@@ -173,10 +156,9 @@ export class MotionTracker {
     getState() {
         return {
             tracking: this.tracking,
-            position: { ...this.position },
-            velocity: { ...this.velocity },
-            orientation: { ...this.orientation },
+            quaternion: { ...this.quaternion },
             acceleration: { ...this.acceleration },
+            rotationRate: { ...this.rotationRate },
         };
     }
 

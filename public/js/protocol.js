@@ -7,24 +7,25 @@
  *   - Bit 0: tracking (touching screen)
  *   - Bit 1: shaking
  *   - Bits 2-7: reserved for future features
- * - Velocity X: 4 bytes (float32)
- * - Velocity Y: 4 bytes (float32)
- * - Velocity Z: 4 bytes (float32)
  * - Acceleration X: 4 bytes (float32)
  * - Acceleration Y: 4 bytes (float32)
  * - Acceleration Z: 4 bytes (float32)
- * - Orientation Alpha: 4 bytes (float32)
- * - Orientation Beta: 4 bytes (float32)
- * - Orientation Gamma: 4 bytes (float32)
+ * - Rotation Rate Alpha: 4 bytes (float32) - deg/s around Z
+ * - Rotation Rate Beta: 4 bytes (float32) - deg/s around X
+ * - Rotation Rate Gamma: 4 bytes (float32) - deg/s around Y
+ * - Quaternion X: 4 bytes (float32)
+ * - Quaternion Y: 4 bytes (float32)
+ * - Quaternion Z: 4 bytes (float32)
+ * - Quaternion W: 4 bytes (float32)
  *
- * Total: 73 bytes (36 UUID + 1 flags + 36 sensor data)
+ * Total: 77 bytes (36 UUID + 1 flags + 40 sensor data)
  *
- * Client sends: 37 bytes (flags + sensor data)
- * Server adds UUID and forwards: 73 bytes
+ * Client sends: 41 bytes (flags + sensor data)
+ * Server adds UUID and forwards: 77 bytes
  */
 
-export const MESSAGE_SIZE = 37;
-export const MESSAGE_WITH_ID_SIZE = 73;
+export const MESSAGE_SIZE = 41;
+export const MESSAGE_WITH_ID_SIZE = 77;
 export const UUID_SIZE = 36;
 
 // Flag bit positions
@@ -49,20 +50,21 @@ export function encodeSensorData(state, isShaking = false) {
 
   let offset = 1;
 
-  // Velocity
-  view.setFloat32(offset, state.velocity.x, true); offset += 4;
-  view.setFloat32(offset, state.velocity.y, true); offset += 4;
-  view.setFloat32(offset, state.velocity.z, true); offset += 4;
-
   // Acceleration
   view.setFloat32(offset, state.acceleration.x, true); offset += 4;
   view.setFloat32(offset, state.acceleration.y, true); offset += 4;
   view.setFloat32(offset, state.acceleration.z, true); offset += 4;
 
-  // Orientation
-  view.setFloat32(offset, state.orientation.alpha, true); offset += 4;
-  view.setFloat32(offset, state.orientation.beta, true); offset += 4;
-  view.setFloat32(offset, state.orientation.gamma, true); offset += 4;
+  // Rotation Rate (deg/s)
+  view.setFloat32(offset, state.rotationRate.alpha, true); offset += 4;
+  view.setFloat32(offset, state.rotationRate.beta, true); offset += 4;
+  view.setFloat32(offset, state.rotationRate.gamma, true); offset += 4;
+
+  // Quaternion
+  view.setFloat32(offset, state.quaternion.x, true); offset += 4;
+  view.setFloat32(offset, state.quaternion.y, true); offset += 4;
+  view.setFloat32(offset, state.quaternion.z, true); offset += 4;
+  view.setFloat32(offset, state.quaternion.w, true); offset += 4;
 
   return buffer;
 }
@@ -70,7 +72,7 @@ export function encodeSensorData(state, isShaking = false) {
 /**
  * Decode sensor data from binary format (conductor-side)
  * @param {ArrayBuffer} buffer - Binary message with prepended UUID
- * @returns {Object} - { musicianId, tracking, shaking, velocity, acceleration, orientation }
+ * @returns {Object} - { musicianId, tracking, shaking, acceleration, rotationRate, quaternion }
  */
 export function decodeSensorData(buffer) {
   const view = new DataView(buffer);
@@ -87,13 +89,6 @@ export function decodeSensorData(buffer) {
   let offset = UUID_SIZE + 1;
 
   // Extract sensor data
-  const velocity = {
-    x: view.getFloat32(offset, true),
-    y: view.getFloat32(offset + 4, true),
-    z: view.getFloat32(offset + 8, true)
-  };
-  offset += 12;
-
   const acceleration = {
     x: view.getFloat32(offset, true),
     y: view.getFloat32(offset + 4, true),
@@ -101,18 +96,26 @@ export function decodeSensorData(buffer) {
   };
   offset += 12;
 
-  const orientation = {
+  const rotationRate = {
     alpha: view.getFloat32(offset, true),
     beta: view.getFloat32(offset + 4, true),
     gamma: view.getFloat32(offset + 8, true)
+  };
+  offset += 12;
+
+  const quaternion = {
+    x: view.getFloat32(offset, true),
+    y: view.getFloat32(offset + 4, true),
+    z: view.getFloat32(offset + 8, true),
+    w: view.getFloat32(offset + 12, true)
   };
 
   return {
     musicianId,
     tracking,
     shaking,
-    velocity,
     acceleration,
-    orientation
+    rotationRate,
+    quaternion
   };
 }

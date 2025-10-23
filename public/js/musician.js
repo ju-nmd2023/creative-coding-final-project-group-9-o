@@ -39,9 +39,9 @@ socket.onerror = (error) => {
 };
 
 // Wire up sensor data to motion tracker
-sensorManager.on('orientation', (data) => {
+sensorManager.on('rotation', (data) => {
     if (!active) return;
-    motionTracker.updateOrientation(data.alpha, data.beta, data.gamma);
+    motionTracker.updateRotationRate(data.alpha, data.beta, data.gamma);
 });
 
 sensorManager.on('motion', (data) => {

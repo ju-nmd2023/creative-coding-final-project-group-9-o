@@ -8,8 +8,8 @@ export class SensorManager {
     constructor() {
         this.active = false;
         this.listeners = {
-            orientation: [],
             motion: [],
+            rotation: [],
             error: []
         };
     }
@@ -21,8 +21,8 @@ export class SensorManager {
     async start() {
         try {
             // Request permission for iOS 13+
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                const permission = await DeviceOrientationEvent.requestPermission();
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                const permission = await DeviceMotionEvent.requestPermission();
                 if (permission !== 'granted') {
                     this._notifyError('Permission denied');
                     return false;
@@ -49,7 +49,7 @@ export class SensorManager {
 
     /**
      * Register callback for sensor events
-     * @param {string} event - Event type: 'orientation', 'motion', 'error'
+     * @param {string} event - Event type: 'motion', 'rotation', 'error'
      * @param {function} callback - Called with sensor data
      */
     on(event, callback) {
@@ -62,14 +62,6 @@ export class SensorManager {
      * Attach browser event listeners
      */
     _attachListeners() {
-        this._orientationHandler = (e) => {
-            this.listeners.orientation.forEach(cb => cb({
-                alpha: e.alpha,
-                beta: e.beta,
-                gamma: e.gamma
-            }));
-        };
-
         this._motionHandler = (e) => {
             if (e.acceleration) {
                 this.listeners.motion.forEach(cb => cb({
@@ -78,9 +70,16 @@ export class SensorManager {
                     z: e.acceleration.z
                 }));
             }
+
+            if (e.rotationRate) {
+                this.listeners.rotation.forEach(cb => cb({
+                    alpha: e.rotationRate.alpha,
+                    beta: e.rotationRate.beta,
+                    gamma: e.rotationRate.gamma
+                }));
+            }
         };
 
-        window.addEventListener('deviceorientation', this._orientationHandler);
         window.addEventListener('devicemotion', this._motionHandler);
     }
 
@@ -88,9 +87,6 @@ export class SensorManager {
      * Remove browser event listeners
      */
     _detachListeners() {
-        if (this._orientationHandler) {
-            window.removeEventListener('deviceorientation', this._orientationHandler);
-        }
         if (this._motionHandler) {
             window.removeEventListener('devicemotion', this._motionHandler);
         }
