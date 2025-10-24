@@ -21,10 +21,12 @@ class Ensemble {
           // Binary message = sensor data from musician
           this.broadcastSensorData(ws, msg);
         } else {
-          // Text message = control message (identify)
+          // Text message = control message (identify, assign-role)
           const data = JSON.parse(msg.toString());
           if (data.type === 'identify') {
             this.register(ws, data);
+          } else if (data.type === 'assign-role') {
+            this.assignRole(ws, data);
           }
         }
       } catch (err) {
@@ -40,13 +42,6 @@ class Ensemble {
         this.conductor = null;
       } else if (ws.role === 'musician') {
         this.musicians.delete(ws);
-        // if (this.conductor && this.conductor.readyState === 1) { // OPEN
-        //   // Send text message for disconnect
-        //   this.conductor.send(JSON.stringify({
-        //     type: 'disconnect',
-        //     musicianId: id,
-        //   }));
-        // }
         logger.info('Musician removed', { remaining: this.musicians.size });
       }
 
@@ -95,6 +90,32 @@ class Ensemble {
       const message = Buffer.concat([idBytes, binaryData]);
 
       this.conductor.send(message);
+    }
+  }
+
+  assignRole(conductorWs, data) {
+    // Only conductor can assign roles
+    if (conductorWs.role !== 'conductor') {
+      logger.warn('Non-conductor tried to assign role', { id: conductorWs.id });
+      return;
+    }
+
+    const { musicianId, role } = data;
+
+    // Find the musician by ID
+    const musician = Array.from(this.musicians).find(m => m.id === musicianId);
+
+    if (!musician) {
+      logger.warn('Tried to assign role to non-existent musician', { musicianId, role });
+      return;
+    }
+
+    if (musician.readyState === 1) { // OPEN
+      musician.send(JSON.stringify({
+        type: 'role-assigned',
+        role: role
+      }));
+      logger.info('Role assigned to musician', { musicianId, role });
     }
   }
 }

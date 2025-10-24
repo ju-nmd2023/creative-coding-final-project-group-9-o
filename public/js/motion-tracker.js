@@ -5,9 +5,10 @@
  * Uses fixed timestep loop for consistent integration.
  */
 export class MotionTracker {
-    constructor(updateRate = 24) {
+    constructor(updateRate = 14) {
         this.tracking = false;
         this.quaternion = { x: 0, y: 0, z: 0, w: 1 }; // Identity quaternion
+        this.initialized = false; // Whether we've received absolute orientation
 
         this.acceleration = { x: 0, y: 0, z: 0 };
         this.rotationRate = { alpha: 0, beta: 0, gamma: 0 }; // deg/s
@@ -88,6 +89,23 @@ export class MotionTracker {
             y: accelY || 0,
             z: accelZ || 0
         };
+    }
+
+    updateMic(gain) {
+
+    }
+
+    /**
+     * Initialize quaternion from absolute orientation (magnetometer)
+     * @param {object} quaternion - Initial quaternion from Euler angles
+     */
+    setInitialOrientation(quaternion) {
+        if (!this.initialized) {
+            this.quaternion = { ...quaternion };
+            // Invert pitch (x component) to fix reversed direction
+            this.quaternion.x = -this.quaternion.x;
+            this.initialized = true;
+        }
     }
 
     /**

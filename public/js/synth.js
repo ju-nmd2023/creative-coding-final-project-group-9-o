@@ -125,16 +125,19 @@ export class DroneSynth {
     /**
      * Get or create an oscillator from the voice pool
      */
-    _getVoiceFromPool() {
+    _getVoiceFromPool(freq) {
         if (this.voicePool.length > 0) {
-            return this.voicePool.pop();
+            const osc = this.voicePool.pop();
+            osc.frequency.value = freq;
+            osc.start();
+            return osc;
         }
 
         // Create new voice if pool is empty
         const partials = this._getPartialsArray();
 
         const osc = new Tone.Oscillator({
-            frequency: 440, // Will be set when used
+            frequency: freq,
             type: 'custom',
             partials: partials,
             volume: -6
@@ -148,11 +151,12 @@ export class DroneSynth {
      * Return an oscillator to the voice pool
      */
     _returnVoiceToPool(osc) {
+        osc.stop();
+
         if (this.voicePool.length < this.maxVoices) {
             this.voicePool.push(osc);
         } else {
             // Pool is full, dispose the oscillator
-            osc.stop();
             osc.dispose();
         }
     }
@@ -212,8 +216,7 @@ export class DroneSynth {
 
         // Add new voices for new frequencies
         for (const freq of toAdd) {
-            const osc = this._getVoiceFromPool();
-            osc.frequency.value = freq;
+            const osc = this._getVoiceFromPool(freq);
             this._updateOscillatorPartials(osc);
             this.activeVoices.set(freq, osc);
         }

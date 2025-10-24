@@ -7,9 +7,12 @@
 export class SensorManager {
     constructor() {
         this.active = false;
+        this.micMeter = new Tone.Meter();
+        this.mic = new Tone.UserMedia().connect(meter);
         this.listeners = {
             motion: [],
             rotation: [],
+            orientation: [],
             error: []
         };
     }
@@ -29,6 +32,8 @@ export class SensorManager {
                 }
             }
 
+            await this.mic.start();
+
             this._attachListeners();
             this.active = true;
             return true;
@@ -44,18 +49,23 @@ export class SensorManager {
      */
     stop() {
         this._detachListeners();
+        this.mic.stop();
         this.active = false;
     }
 
     /**
      * Register callback for sensor events
-     * @param {string} event - Event type: 'motion', 'rotation', 'error'
+     * @param {string} event - Event type: 'motion', 'rotation', 'orientation', 'error'
      * @param {function} callback - Called with sensor data
      */
     on(event, callback) {
         if (this.listeners[event]) {
             this.listeners[event].push(callback);
         }
+    }
+
+    getMicLevel() {
+        return this.meter.getValue();
     }
 
     /**
@@ -80,7 +90,18 @@ export class SensorManager {
             }
         };
 
+        this._orientationHandler = (e) => {
+            // Provides absolute orientation with magnetometer
+            this.listeners.orientation.forEach(cb => cb({
+                alpha: e.alpha,   // Z-axis rotation (compass heading)
+                beta: e.beta,     // X-axis rotation (pitch)
+                gamma: e.gamma,   // Y-axis rotation (roll)
+                absolute: e.absolute  // Whether magnetometer is being used
+            }));
+        };
+
         window.addEventListener('devicemotion', this._motionHandler);
+        window.addEventListener('deviceorientation', this._orientationHandler);
     }
 
     /**
@@ -89,6 +110,9 @@ export class SensorManager {
     _detachListeners() {
         if (this._motionHandler) {
             window.removeEventListener('devicemotion', this._motionHandler);
+        }
+        if (this._orientationHandler) {
+            window.removeEventListener('deviceorientation', this._orientationHandler);
         }
     }
 

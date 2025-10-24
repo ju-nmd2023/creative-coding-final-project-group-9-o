@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musician - Debug</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0ff;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MUSICIAN - DEBUG</h1>
+    <div id="status">Connecting...</div>
+    <button id="start">Start Sending Data</button>
+    <pre id="debug"></pre>
+    <script type="module">
+        import { SensorManager } from './js/sensor-manager.js';
+        import { MotionTracker } from './js/motion-tracker.js';
+        import { encodeSensorData } from './js/protocol.js';
+
+        // UI elements
+        const statusEl = document.getElementById('status');
+        const debugEl = document.getElementById('debug');
+        const startBtn = document.getElementById('start');
+
+        // WebSocket connection with auto-reconnect
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}`;
+
+        let socket;
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_DELAY = 30000; // 30 seconds
+        const INITIAL_RECONNECT_DELAY = 1000; // 1 second
+
+        // Core systems
+        const sensorManager = new SensorManager();
+        const motionTracker = new MotionTracker();
+
+        let active = false;
+
+        window._cc_project_role = 'musician';
+
+        function connect() {
+            socket = new WebSocket(wsUrl);
+            socket.binaryType = 'arraybuffer';
+
+            socket.onopen = () => {
+                console.log('Musician connected to server');
+                statusEl.textContent = 'Connected';
+                reconnectAttempts = 0;
+                socket.send(JSON.stringify({
+                    type: 'identify',
+                    role: 'musician'
+                }));
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket disconnected, attempting to reconnect...');
+                statusEl.textContent = 'Disconnected - Reconnecting...';
+                reconnect();
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                statusEl.textContent = 'Connection Error';
+            };
+        }
+
+        function reconnect() {
+            const delay = Math.min(
+                INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts),
+                MAX_RECONNECT_DELAY
+            );
+            const jitter = Math.random() * 1000;
+
+            reconnectAttempts++;
+            const waitTime = Math.round((delay + jitter) / 1000);
+            statusEl.textContent = `Reconnecting in ${waitTime}s (attempt ${reconnectAttempts})...`;
+            console.log(`Reconnecting in ${waitTime}s (attempt ${reconnectAttempts})...`);
+
+            setTimeout(() => {
+                connect();
+            }, delay + jitter);
+        }
+
+        connect();
+
+        // Wire up sensor data to motion tracker
+        sensorManager.on('rotation', (data) => {
+            if (!active) return;
+            motionTracker.updateRotationRate(data.alpha, data.beta, data.gamma);
+        });
+
+        sensorManager.on('motion', (data) => {
+            if (!active) return;
+            motionTracker.updateMotion(data.x, data.y, data.z);
+        });
+
+        sensorManager.on('error', (message) => {
+            alert(message);
+        });
+
+        // Debug display of sensor data
+        motionTracker.on('update', (state) => {
+            debugEl.textContent = JSON.stringify(state, null, 2);
+
+            if (socket.readyState === WebSocket.OPEN) {
+                const binaryData = encodeSensorData(state, false);
+                socket.send(binaryData);
+            }
+        });
+
+        // Touch handlers for position tracking
+        document.body.addEventListener('touchstart', () => {
+            if (!active) return;
+            motionTracker.startTracking();
+        });
+
+        document.body.addEventListener('touchend', () => {
+            if (!active) return;
+            motionTracker.stopTracking();
+        });
+
+        startBtn.addEventListener('click', async () => {
+            if (active) {
+                active = false;
+                sensorManager.stop();
+                motionTracker.stop();
+                startBtn.textContent = 'Start Sending Data';
+                return;
+            }
+
+            const success = await sensorManager.start();
+            if (success) {
+                active = true;
+                motionTracker.start();
+                startBtn.textContent = 'Stop Sending Data';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -17,15 +17,16 @@
  * - Quaternion Y: 4 bytes (float32)
  * - Quaternion Z: 4 bytes (float32)
  * - Quaternion W: 4 bytes (float32)
+ * - Mic level: 4 bytes (float32)
  *
- * Total: 77 bytes (36 UUID + 1 flags + 40 sensor data)
+ * Total: 81 bytes (36 UUID + 1 flags + 44 sensor data)
  *
- * Client sends: 41 bytes (flags + sensor data)
- * Server adds UUID and forwards: 77 bytes
+ * Client sends: 45 bytes (flags + sensor data)
+ * Server adds UUID and forwards: 81 bytes
  */
 
-export const MESSAGE_SIZE = 41;
-export const MESSAGE_WITH_ID_SIZE = 77;
+export const MESSAGE_SIZE = 45;
+export const MESSAGE_WITH_ID_SIZE = 81;
 export const UUID_SIZE = 36;
 
 // Flag bit positions
@@ -65,6 +66,9 @@ export function encodeSensorData(state, isShaking = false) {
   view.setFloat32(offset, state.quaternion.y, true); offset += 4;
   view.setFloat32(offset, state.quaternion.z, true); offset += 4;
   view.setFloat32(offset, state.quaternion.w, true); offset += 4;
+
+  // Mic volume
+  view.setFloat32(offset, state.micLevel ?? 0, true); offset += 4;
 
   return buffer;
 }
@@ -109,6 +113,9 @@ export function decodeSensorData(buffer) {
     z: view.getFloat32(offset + 8, true),
     w: view.getFloat32(offset + 12, true)
   };
+  offset += 16;
+
+  const micLevel = view.getFloat32(offset, true);
 
   return {
     musicianId,
@@ -116,6 +123,7 @@ export function decodeSensorData(buffer) {
     shaking,
     acceleration,
     rotationRate,
-    quaternion
+    quaternion,
+    micLevel
   };
 }
