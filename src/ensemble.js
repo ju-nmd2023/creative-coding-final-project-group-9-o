@@ -1,5 +1,5 @@
 import logger from './logger.js';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomInt } from 'node:crypto';
 
 class Ensemble {
   constructor() {
@@ -16,7 +16,12 @@ class Ensemble {
 
   generateToken() {
     // Generate a 6-character alphanumeric token
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    let token = '';
+    const alphabet = '23456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (let i = 0; i < 6; i++) {
+      token += alphabet.charAt(randomInt(0, alphabet.length));
+    }
+    return token;
   }
 
   startTokenRotation() {

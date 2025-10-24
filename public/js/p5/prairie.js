@@ -1,8 +1,9 @@
 import { musicians, assignRole } from '../stage.js';
 import { DroneSynth, MonoSynth } from '../synth.js';
 
-let inIntro = false;
+let inIntro = true;
 let shouldBegin = false;
+let autoChords = true;
 
 const hill_params = new Array(4);
 const layers = {};
@@ -643,6 +644,15 @@ export function setup() {
 
     layers.intro = createGraphics(width, height);
     background(0);
+
+    if (autoChords) {
+        setInterval(() => {
+            chordIndex = (chordIndex + 1) % chords.length;
+            synth.playChord(chords[chordIndex][0]);
+        }, 6000);
+    }
+
+    synth.setVolume(4);
 }
 
 

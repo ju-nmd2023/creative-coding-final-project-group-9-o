@@ -12,7 +12,7 @@ const SCALING_FACTOR = 5; // Scales the dB difference to the 0-100 range
  */
 export class MotionTracker {
     constructor(updateRate = 14, mic) {
-        this.tracking = false;
+        this.touch = false;
         this.quaternion = { x: 0, y: 0, z: 0, w: 1 }; // Identity quaternion
         this.initialized = false; // Whether we've received absolute orientation
 
@@ -44,7 +44,7 @@ export class MotionTracker {
     /**
      * Register callback for state updates
      * @param {string} event - Event name ('update')
-     * @param {function} callback - Called with {tracking, acceleration, rotationRate, quaternion}
+     * @param {function} callback - Called with {touch, acceleration, rotationRate, quaternion}
      */
     on(event, callback) {
         if (this.listeners[event]) {
@@ -76,17 +76,17 @@ export class MotionTracker {
     }
 
     /**
-     * Start tracking (called on touch start)
+     * Start touch tracking (called on touch start)
      */
     startTracking() {
-        this.tracking = true;
+        this.touch = true;
     }
 
     /**
-     * Stop tracking (called on touch end)
+     * Stop touch tracking (called on touch end)
      */
     stopTracking() {
-        this.tracking = false;
+        this.touch = false;
     }
 
     /**
@@ -218,7 +218,7 @@ export class MotionTracker {
      */
     getState() {
         return {
-            tracking: this.tracking,
+            touch: this.touch,
             blowingStrength: this.blowingStrength,
             quaternion: { ...this.quaternion },
             acceleration: { ...this.acceleration },

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Musician - Authorized</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            text-align: center;
+        }
+        .checkmark {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 2rem;
+            border-radius: 50%;
+            background: #0a0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: scaleIn 0.5s ease-out;
+        }
+        .checkmark::after {
+            content: '✓';
+            font-size: 60px;
+            color: #fff;
+            animation: fadeIn 0.5s ease-out 0.3s both;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+            animation: fadeIn 0.5s ease-out 0.5s both;
+        }
+        .message {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 3rem;
+            max-width: 500px;
+            animation: fadeIn 0.5s ease-out 0.7s both;
+        }
+        .continue-btn {
+            padding: 1rem 2.5rem;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            animation: fadeIn 0.5s ease-out 0.9s both;
+        }
+        .continue-btn:hover {
+            background: #eee;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
+        .countdown {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+            animation: fadeIn 0.5s ease-out 1.1s both;
+        }
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="checkmark"></div>
+
+    <h1>Authorization Successful!</h1>
+
+    <p class="message">
+        You've been automatically authorized. Click continue to access the musician interface.
+    </p>
+
+    <a href="/musician/interface" class="continue-btn">Continue to Interface</a>
+
+    <div class="countdown" id="countdown">
+        Redirecting automatically in <span id="seconds">5</span> seconds...
+    </div>
+
+    <script>
+        let seconds = 5;
+        const secondsEl = document.getElementById('seconds');
+        const countdownEl = document.getElementById('countdown');
+
+        // Countdown timer
+        const interval = setInterval(() => {
+            seconds--;
+            secondsEl.textContent = seconds;
+
+            if (seconds <= 0) {
+                clearInterval(interval);
+                countdownEl.textContent = 'Redirecting...';
+                window.location.href = '/musician/interface';
+            }
+        }, 1000);
+
+        // Clear countdown if user clicks continue button
+        document.querySelector('.continue-btn').addEventListener('click', () => {
+            clearInterval(interval);
+        });
+    </script>
+</body>
+</html>

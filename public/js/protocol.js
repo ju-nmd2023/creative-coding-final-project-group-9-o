@@ -4,7 +4,7 @@
  * Message Structure (Musician -> Server -> Stage):
  * - UUID: 36 bytes (ASCII string, fixed length) - prepended by server
  * - Flags: 1 byte
- *   - Bit 0: tracking (touching screen)
+ *   - Bit 0: touch (touching screen)
  *   - Bit 1: shaking
  *   - Bits 2-7: reserved for future features
  * - Acceleration X: 4 bytes (float32)
@@ -30,7 +30,7 @@ export const MESSAGE_WITH_ID_SIZE = 81;
 export const UUID_SIZE = 36;
 
 // Flag bit positions
-export const FLAG_TRACKING = 0;
+export const FLAG_TOUCH = 0;
 export const FLAG_SHAKING = 1;
 
 /**
@@ -45,7 +45,7 @@ export function encodeSensorData(state, isShaking = false) {
 
   // Flags byte
   let flags = 0;
-  if (state.tracking) flags |= (1 << FLAG_TRACKING);
+  if (state.touch) flags |= (1 << FLAG_TOUCH);
   if (isShaking) flags |= (1 << FLAG_SHAKING);
   view.setUint8(0, flags);
 
@@ -76,7 +76,7 @@ export function encodeSensorData(state, isShaking = false) {
 /**
  * Decode sensor data from binary format (stage-side)
  * @param {ArrayBuffer} buffer - Binary message with prepended UUID
- * @returns {Object} - { musicianId, tracking, shaking, acceleration, rotationRate, quaternion }
+ * @returns {Object} - { musicianId, touch, shaking, acceleration, rotationRate, quaternion }
  */
 export function decodeSensorData(buffer) {
   const view = new DataView(buffer);
@@ -87,7 +87,7 @@ export function decodeSensorData(buffer) {
 
   // Extract flags
   const flags = view.getUint8(UUID_SIZE);
-  const tracking = !!(flags & (1 << FLAG_TRACKING));
+  const touch = !!(flags & (1 << FLAG_TOUCH));
   const shaking = !!(flags & (1 << FLAG_SHAKING));
 
   let offset = UUID_SIZE + 1;
@@ -119,7 +119,7 @@ export function decodeSensorData(buffer) {
 
   return {
     musicianId,
-    tracking,
+    touch,
     shaking,
     acceleration,
     rotationRate,

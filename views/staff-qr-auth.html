@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Authorization - Staff</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .back-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: #888;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+        .back-link:hover {
+            color: #fff;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+        .instructions {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            text-align: center;
+        }
+        #qr-container {
+            background: #fff;
+            padding: 3rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.1);
+        }
+        #qr-code {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .info {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #222;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .info-value {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #fff;
+            word-break: break-all;
+            max-width: 300px;
+            text-align: right;
+        }
+        .copy-btn {
+            padding: 0.5rem 1rem;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .copy-btn:hover {
+            background: #333;
+            border-color: #666;
+        }
+        .copy-btn.copied {
+            background: #0a0;
+            border-color: #0f0;
+        }
+        .warning {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #331100;
+            border: 1px solid #663300;
+            border-radius: 8px;
+            color: #ffaa66;
+            font-size: 0.9rem;
+            max-width: 500px;
+        }
+        .loading {
+            font-size: 1.2rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <a href="/staff" class="back-link">← Back to Staff Portal</a>
+
+    <h1>QR Code Authorization</h1>
+    <p class="instructions">
+        Instructions:
+        <ol>
+            <li>Scan this QR code with your phone.</li>
+            <li>You'll be taken to a page where you can control the art with your phone.</li>
+            <li>You can rotate, shake and blow into the microphone on your phone.</li>
+            <li>Once you're done, <emph>please close the tab so other people can enjoy.</emph></li>
+        </ol>
+    </p>
+
+    <div id="qr-container">
+        <div id="qr-code" class="loading">Generating QR Code...</div>
+    </div>
+
+    <div style="display:none">
+    <div class="info">
+        <div class="info-row">
+            <span class="info-label">Authorization URL:</span>
+            <button id="copy-url-btn" class="copy-btn" onclick="copyUrl()">Copy</button>
+        </div>
+        <div class="info-row">
+            <span class="info-value" id="auth-url">Loading...</span>
+        </div>
+    </div>
+
+    <div class="warning">
+        ⚠️ Keep this QR code secure. Anyone with access to this link will be automatically authorized as a musician.
+    </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        let authUrl = '';
+
+        async function loadAuthKey() {
+            try {
+                const response = await fetch('/api/staff/auth-key');
+                const data = await response.json();
+
+                authUrl = data.url;
+                document.getElementById('auth-url').textContent = authUrl;
+
+                // Generate QR code
+                const qrContainer = document.getElementById('qr-code');
+                qrContainer.innerHTML = '';
+                qrContainer.classList.remove('loading');
+
+                new QRCode(qrContainer, {
+                    text: authUrl,
+                    width: 300,
+                    height: 300,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                console.log('QR code generated for:', authUrl);
+            } catch (error) {
+                console.error('Error loading auth key:', error);
+                document.getElementById('qr-code').textContent = 'Error loading QR code';
+                document.getElementById('auth-url').textContent = 'Error loading URL';
+            }
+        }
+
+        function copyUrl() {
+            const btn = document.getElementById('copy-url-btn');
+
+            navigator.clipboard.writeText(authUrl).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy URL');
+            });
+        }
+
+        // Load on page load
+        loadAuthKey();
+    </script>
+</body>
+</html>

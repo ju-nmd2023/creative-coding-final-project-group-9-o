@@ -3,7 +3,7 @@ import http from 'node:http';
 import { WebSocketServer } from 'ws';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomBytes } from 'node:crypto';
 import ensemble from './src/ensemble.js';
 import logger from './src/logger.js';
 import path from 'node:path';
@@ -16,6 +16,9 @@ const app = express();
 
 // Password for staff authentication (can be moved to env variable)
 const STAFF_PASSWORD = process.env.STAFF_PASSWORD || 'exhibition2025';
+
+// Generate persistent auto-authorization key (in production, store this in env or DB)
+const AUTO_AUTH_KEY = process.env.AUTO_AUTH_KEY || randomBytes(32).toString('hex');
 
 // Middleware
 app.use(express.json());
@@ -39,6 +42,10 @@ function requireStaff(req, res, next) {
   if (req.session && req.session.isStaff) {
     next();
   } else {
+    // Check if this is an API request or page request
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     res.redirect('/staff/login');
   }
 }
@@ -49,6 +56,10 @@ function requireApprovedMusician(req, res, next) {
   if (sessionId && ensemble.isSessionApproved(sessionId)) {
     next();
   } else {
+    // Check if this is an API request or page request
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     res.redirect('/musician');
   }
 }
@@ -160,6 +171,23 @@ app.get('/staff/scanner', requireStaff, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'staff-scanner.html'));
 });
 
+// Staff QR authorization page (protected) - generates QR code with auto-auth link
+app.get('/staff/qr-auth', requireStaff, (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'staff-qr-auth.html'));
+});
+
+// Get auto-auth key (staff only)
+app.get('/api/staff/auth-key', requireStaff, (req, res) => {
+  const host = req.get('host');
+  const protocol = req.protocol;
+  const url = `${protocol}://${host}/musician/auto-auth?key=${AUTO_AUTH_KEY}`;
+
+  res.json({
+    key: AUTO_AUTH_KEY,
+    url
+  });
+});
+
 // Stage display (protected)
 app.get('/stage', requireStaff, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'stage.html'));
@@ -181,6 +209,32 @@ app.get('/musician', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'musician-auth.html'));
 });
 
+// Musician auto-authorization page - validates key and auto-approves
+app.get('/musician/auto-auth', (req, res) => {
+  const { key } = req.query;
+
+  // Validate auth key
+  if (key !== AUTO_AUTH_KEY) {
+    return res.status(403).send('Invalid authorization key');
+  }
+
+  // Create or get existing musician session
+  if (!req.session.musicianId) {
+    req.session.musicianId = randomUUID();
+    logger.info('Created auto-auth musician session', {
+      musicianId: req.session.musicianId
+    });
+  }
+
+  // Auto-approve the session
+  ensemble.approveSession(req.session.musicianId);
+  logger.info('Auto-approved musician session', {
+    musicianId: req.session.musicianId
+  });
+
+  res.sendFile(path.join(__dirname, 'views', 'musician-auto-auth.html'));
+});
+
 // Musician interface (requires approved session)
 app.get('/musician/interface', requireApprovedMusician, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'musician.html'));
@@ -197,6 +251,10 @@ wss.on('connection', (ws) => {
 
 server.listen(3215, () => {
   logger.info('Server is up on port 3215');
+  logger.info('Auto-authorization key:', AUTO_AUTH_KEY);
+  if (!process.env.AUTO_AUTH_KEY) {
+    logger.warn('Using generated AUTO_AUTH_KEY. Set AUTO_AUTH_KEY environment variable for persistence.');
+  }
 });
 
 
