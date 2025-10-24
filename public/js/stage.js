@@ -3,7 +3,7 @@ import { decodeSensorData } from './protocol.js';
 // Track musicians by ID
 export const musicians = new Map();
 
-window._cc_project_role = 'conductor';
+window._cc_project_role = 'stage';
 
 // WebSocket connection with auto-reconnect
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -13,17 +13,23 @@ let socket;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 const INITIAL_RECONNECT_DELAY = 1000; // 1 second
+let tokenUpdateCallback = null;
+
+export function setTokenUpdateCallback(callback) {
+    tokenUpdateCallback = callback;
+}
 
 function connect() {
     socket = new WebSocket(wsUrl);
     socket.binaryType = 'arraybuffer';
 
     socket.onopen = () => {
-        console.log('Conductor connected to server');
-        reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+        console.log('Stage connected to server');
+        reconnectAttempts = 0;
+
         socket.send(JSON.stringify({
             type: 'identify',
-            role: 'conductor'
+            role: 'stage'
         }));
     };
 
@@ -31,7 +37,12 @@ function connect() {
         if (typeof event.data === 'string') {
             // Text message - control message
             const data = JSON.parse(event.data);
-            if (data.type === 'join' || data.type === 'disconnect') {
+            if (data.type === 'token-update') {
+                if (tokenUpdateCallback) {
+                    tokenUpdateCallback(data.token);
+                }
+                return;
+            } else if (data.type === 'join' || data.type === 'disconnect') {
                 if (data.role === 'musician') {
                     window.dispatchEvent(new CustomEvent('musician', {
                         detail: data,

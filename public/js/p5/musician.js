@@ -1,16 +1,12 @@
 import { initMusician, quaternionToAxisAngle, slerpQuaternions } from '../musician.js';
 
 // Initialize musician system
-const { start, stop, onStatusChange, onSensorUpdate, onRoleAssigned, setMicLevel } = initMusician();
+const { start, stop, onStatusChange, onSensorUpdate, onRoleAssigned, setMicLevel } = initMusician(true); // use mic
 
 let sensorState = null;
 let role = null;
 let startTime = null;
 let introTime = null;
-
-let mic;
-let meter = new Tone.Meter();
-let lastMicSample = 0;
 
 let inIntro = true;
 let introDuration = 3000;
@@ -20,7 +16,6 @@ const cubeSize = 150;
 // For smooth interpolation
 let currentQuaternion = null;
 let targetQuaternion = null;
-let lastSensorUpdate = 0;
 const interpolationSpeed = 0.2; // Adjust this for faster/slower interpolation (0-1)
 
 // Ring configuration for polyrhythmic dots
@@ -103,14 +98,8 @@ function pinwheel() {
     box(cubeSize);
     pop();
 
-    let blowing = 0;
-    if (millis() > lastMicSample + 100) {
-        const micLevel = Tone.dbToGain(meter.getValue());
-        setMicLevel(micLevel);
-        blowing = micLevel > 0.05 ? micLevel * 0.9 : 0;
-        lastMicSample = millis();
-    }
-    ringSpeed = Math.max(0, ringSpeed - ringParams.speedDecay + blowing);
+    let blowing = sensorState?.blowingStrength ?? 0;
+    ringSpeed = Math.max(0, ringSpeed - ringParams.speedDecay + blowing * 0.01);
     ringSpeed = Math.min(ringSpeed, 5);
     ringShift = (ringShift + ringSpeed * (t/1000)) % TWO_PI;
 }
@@ -134,8 +123,6 @@ window.setup = function() {
         console.log('Assigned role:', assignedRole);
         role = assignedRole;
         startTime = millis();
-        mic = new Tone.UserMedia().connect(meter);
-        await mic.open();
         start();
         loop();
     });

@@ -5,10 +5,12 @@
  * Provides a clean interface for sensor data without exposing browser APIs.
  */
 export class SensorManager {
-    constructor() {
+    constructor(options = {}) {
+        const {
+            mic = false
+        } = options;
         this.active = false;
-        this.micMeter = new Tone.Meter();
-        this.mic = new Tone.UserMedia().connect(meter);
+        this.mic = mic ? new Tone.UserMedia() : null;
         this.listeners = {
             motion: [],
             rotation: [],
@@ -31,8 +33,8 @@ export class SensorManager {
                     return false;
                 }
             }
-
-            await this.mic.start();
+            
+            if (this.mic) await this.mic.open();
 
             this._attachListeners();
             this.active = true;
@@ -49,7 +51,9 @@ export class SensorManager {
      */
     stop() {
         this._detachListeners();
-        this.mic.stop();
+        if (mic) {
+            this.mic.stop();
+        }
         this.active = false;
     }
 
@@ -62,10 +66,6 @@ export class SensorManager {
         if (this.listeners[event]) {
             this.listeners[event].push(callback);
         }
-    }
-
-    getMicLevel() {
-        return this.meter.getValue();
     }
 
     /**

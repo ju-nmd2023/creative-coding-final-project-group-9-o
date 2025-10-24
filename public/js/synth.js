@@ -331,3 +331,76 @@ export class DroneSynth {
         this.masterGain.dispose();
     }
 }
+
+/**
+ * MonoSynth - A simplified monophonic synthesizer for short, gentle melodic notes
+ *
+ * Features:
+ * - Uses Tone.Synth for simple monophonic synthesis
+ * - Built-in reverb for ambient feel
+ * - Single trigger function with semitone offset and duration
+ */
+export class MonoSynth {
+    constructor(options = {}) {
+        const {
+            baseNote = 440,
+            oscillator = { type: 'sine' },
+            envelope,
+            volume = -12,
+            reverbAmount = 0.3
+        } = options;
+
+        this.baseNote = baseNote;
+
+        // Create reverb for ambient feel
+        this.reverb = new Tone.Reverb({
+            decay: 2.0,
+            wet: reverbAmount
+        });
+
+        // Create Tone.Synth
+        this.synth = new Tone.Synth({
+            oscillator: oscillator,
+            envelope: envelope,
+            volume: volume
+        }).connect(this.reverb);
+
+        this.reverb.toDestination();
+    }
+
+    /**
+     * Convert semitone offset to frequency
+     */
+    _offsetToFrequency(baseFreq, semitones) {
+        return baseFreq * Math.pow(2, semitones / 12);
+    }
+
+    /**
+     * Get base frequency
+     */
+    _getBaseFrequency() {
+        if (typeof this.baseNote === 'number') {
+            return this.baseNote;
+        }
+        return Tone.Frequency(this.baseNote).toFrequency();
+    }
+
+    /**
+     * Trigger a note with a given semitone offset from the base note
+     * @param {number} semitoneOffset - Semitone offset from base frequency
+     * @param {string|number} duration - Note duration (Tone.js time notation like '16n' or seconds)
+     */
+    trigger(semitoneOffset = 0, duration = '16n', time = undefined) {
+        const baseFreq = this._getBaseFrequency();
+        const frequency = this._offsetToFrequency(baseFreq, semitoneOffset);
+        this.synth.triggerAttackRelease(frequency, duration, time);
+    }
+
+    /**
+     * Clean up all resources
+     */
+    dispose() {
+        this.synth.dispose();
+        this.reverb.dispose();
+    }
+}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Musician Authorization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+        .instructions {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 3rem;
+            max-width: 500px;
+        }
+        #qr-container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            min-height: 300px;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #qr-code {
+            margin-bottom: 1rem;
+        }
+        #token-display {
+            font-family: monospace;
+            font-size: 2rem;
+            color: #000;
+            font-weight: bold;
+            letter-spacing: 0.3rem;
+        }
+        #session-id {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 1rem;
+            word-break: break-all;
+        }
+        .status {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 2rem;
+        }
+        .status.waiting {
+            color: #ffa500;
+        }
+        .status.approved {
+            color: #00ff00;
+        }
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #333;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            color: #ff4444;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Musician Authorization</h1>
+    <p class="instructions">
+        Show this QR code to staff to get authorized. The code changes every 30 seconds for security.
+    </p>
+
+    <div id="qr-container">
+        <div id="qr-code"></div>
+        <div id="token-display">------</div>
+        <div id="session-id">Loading...</div>
+    </div>
+
+    <div id="status" class="status waiting">
+        Waiting for authorization<span class="spinner"></span>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        let qrCode = null;
+        let sessionId = null;
+        let currentToken = null;
+        let pollInterval = null;
+
+        const qrContainer = document.getElementById('qr-code');
+        const tokenDisplay = document.getElementById('token-display');
+        const sessionIdDisplay = document.getElementById('session-id');
+        const statusEl = document.getElementById('status');
+        const errorEl = document.getElementById('error');
+
+        async function fetchTokenData() {
+            try {
+                const response = await fetch('/api/musician/token');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch token');
+                }
+
+                sessionId = data.sessionId;
+                sessionIdDisplay.textContent = `Session: ${sessionId}`;
+
+                // Check if approved
+                if (data.approved) {
+                    statusEl.textContent = 'Authorization approved! Redirecting...';
+                    statusEl.className = 'status approved';
+                    clearInterval(pollInterval);
+
+                    // Redirect to musician interface
+                    setTimeout(() => {
+                        window.location.href = '/musician/interface';
+                    }, 1000);
+                    return;
+                }
+
+                // Update QR code if token changed
+                if (data.token !== currentToken) {
+                    currentToken = data.token;
+                    updateQRCode();
+                }
+            } catch (error) {
+                console.error('Error fetching token:', error);
+                errorEl.textContent = 'Connection error. Retrying...';
+            }
+        }
+
+        function updateQRCode() {
+            // Create QR data with sessionId and token
+            const qrData = JSON.stringify({
+                sessionId,
+                token: currentToken
+            });
+
+            // Clear previous QR code
+            qrContainer.innerHTML = '';
+
+            // Generate new QR code
+            qrCode = new QRCode(qrContainer, {
+                text: qrData,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            // Update token display
+            tokenDisplay.textContent = currentToken;
+
+            console.log('QR code updated:', { sessionId, token: currentToken });
+        }
+
+        // Initial fetch
+        fetchTokenData();
+
+        // Poll every 2 seconds for token updates and approval status
+        pollInterval = setInterval(fetchTokenData, 2000);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(pollInterval);
+        });
+    </script>
+</body>
+</html>

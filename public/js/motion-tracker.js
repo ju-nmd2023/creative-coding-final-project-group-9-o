@@ -1,3 +1,9 @@
+// Configuration constants for dynamic normalization
+const AMBIENT_DECAY = 0.995;
+const AMBIENT_RISE_RATE = 0.001;
+const THRESHOLD = 1; // Minimum dB difference above noise floor to count as a blow
+const SCALING_FACTOR = 5; // Scales the dB difference to the 0-100 range
+
 /**
  * MotionTracker - Abstracts device sensor integration
  *
@@ -5,7 +11,7 @@
  * Uses fixed timestep loop for consistent integration.
  */
 export class MotionTracker {
-    constructor(updateRate = 14) {
+    constructor(updateRate = 14, mic) {
         this.tracking = false;
         this.quaternion = { x: 0, y: 0, z: 0, w: 1 }; // Identity quaternion
         this.initialized = false; // Whether we've received absolute orientation
@@ -16,6 +22,19 @@ export class MotionTracker {
         this.listeners = {
             update: []
         };
+
+        if (mic) {
+            this.mic = mic;
+            this.blowingStrength = 0;
+            this.noiseFloor = -100;
+
+            this.ambientMeter = new Tone.Meter();
+            this.blowingFilter = new Tone.Filter(300, 'lowpass');
+            this.filteredMeter = new Tone.Meter({ smoothing: 0.01 });
+
+            this.mic.connect(this.ambientMeter);
+            this.mic.chain(this.blowingFilter, this.filteredMeter);
+        }
 
         this.updateRate = updateRate;
         this.dt = 1 / updateRate;
@@ -42,6 +61,7 @@ export class MotionTracker {
         this.intervalId = setInterval(() => {
             this._integrate();
             this._notifyListeners();
+            if (this.mic) this._processAudio();
         }, 1000 / this.updateRate);
     }
 
@@ -91,10 +111,6 @@ export class MotionTracker {
         };
     }
 
-    updateMic(gain) {
-
-    }
-
     /**
      * Initialize quaternion from absolute orientation (magnetometer)
      * @param {object} quaternion - Initial quaternion from Euler angles
@@ -118,6 +134,35 @@ export class MotionTracker {
         this._updateQuaternion(dt);
     }
 
+    _processAudio() {
+        const db = this.filteredMeter.getValue();
+        this.blowingStrength = Math.max(0, Math.min(10, (db + 60) / 6));
+        return;
+
+        const V_current = this.ambientMeter.getValue();  // Total volume (dB)
+        const V_filtered = this.filteredMeter.getValue();    // Low-frequency volume (dB)
+
+        // 1. Update Dynamic Noise Floor
+        // Noise floor slowly decays when quiet, but rises quickly to sustained background noise
+        this.noiseFloor *= AMBIENT_DECAY;
+        if (V_current > this.noiseFloor && V_filtered < this.noiseFloor * 0.4) {
+            this.noiseFloor += (V_current - this.noiseFloor) * AMBIENT_RISE_RATE;
+        }
+
+        // 2. Calculate Relative Loudness (using the filtered signal)
+        const L_relative = V_filtered - this.noiseFloor;
+        
+        let strength = 0;
+        
+        if (L_relative > THRESHOLD) {
+            // Apply threshold and scale the result
+            const effective_db = L_relative - THRESHOLD;
+            // Scale and clamp the final strength
+            strength = Math.min(100, effective_db * SCALING_FACTOR);
+        }
+
+        this.blowingStrength = strength;
+    }
 
     /**
      * Update quaternion from rotation rate (gyroscope)
@@ -174,6 +219,7 @@ export class MotionTracker {
     getState() {
         return {
             tracking: this.tracking,
+            blowingStrength: this.blowingStrength,
             quaternion: { ...this.quaternion },
             acceleration: { ...this.acceleration },
             rotationRate: { ...this.rotationRate },

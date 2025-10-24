@@ -5,76 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Interactive Art Installation</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
+            color: #fff;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 2rem;
         }
         .container {
             text-align: center;
-            color: white;
-            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
         }
         h1 {
             font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+            letter-spacing: 0.1rem;
         }
-        p {
+        .subtitle {
             font-size: 1.2rem;
+            margin-bottom: 4rem;
+            color: #666;
+        }
+        .primary-action {
             margin-bottom: 3rem;
-            opacity: 0.9;
         }
-        .links {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .link-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+        .musician-button {
+            display: block;
+            width: 100%;
             padding: 2rem;
-            width: 250px;
+            background: #fff;
+            color: #000;
             text-decoration: none;
-            color: white;
-            transition: transform 0.3s, background 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: 500;
+            cursor: pointer;
         }
-        .link-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.2);
+        .musician-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
         }
-        .link-card h2 {
-            margin: 0 0 1rem 0;
-            font-size: 1.8rem;
+        .musician-button .title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
         }
-        .link-card p {
-            margin: 0;
+        .musician-button .description {
             font-size: 1rem;
-            opacity: 0.8;
+            color: #666;
+        }
+        .divider {
+            height: 1px;
+            background: #222;
+            margin: 3rem 0;
+        }
+        .staff-section {
+            text-align: center;
+        }
+        .staff-label {
+            font-size: 0.9rem;
+            color: #444;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+        }
+        .staff-link {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            color: #666;
+            text-decoration: none;
+            border: 1px solid #333;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .staff-link:hover {
+            color: #fff;
+            border-color: #666;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .musician-button .title {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Interactive Art Installation</h1>
-        <p>Choose your role to begin</p>
-        <div class="links">
-            <a href="conductor.html" class="link-card">
-                <h2>Conductor</h2>
-                <p>Visualize data from all musicians</p>
+        <p class="subtitle">Motion-based collaborative performance</p>
+
+        <div class="primary-action">
+            <a href="/musician" class="musician-button">
+                <div class="title">Join as Musician</div>
+                <div class="description">Use your phone to participate in the performance</div>
             </a>
-            <a href="musician.html" class="link-card">
-                <h2>Musician</h2>
-                <p>Use your phone to participate</p>
-            </a>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="staff-section">
+            <div class="staff-label">Staff Only</div>
+            <a href="/staff/login" class="staff-link">Staff Portal</a>
         </div>
     </div>
 </body>

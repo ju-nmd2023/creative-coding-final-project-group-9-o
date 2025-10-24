@@ -1,7 +1,7 @@
 /**
  * Binary Protocol for Sensor Data
  *
- * Message Structure (Musician -> Server -> Conductor):
+ * Message Structure (Musician -> Server -> Stage):
  * - UUID: 36 bytes (ASCII string, fixed length) - prepended by server
  * - Flags: 1 byte
  *   - Bit 0: tracking (touching screen)
@@ -68,13 +68,13 @@ export function encodeSensorData(state, isShaking = false) {
   view.setFloat32(offset, state.quaternion.w, true); offset += 4;
 
   // Mic volume
-  view.setFloat32(offset, state.micLevel ?? 0, true); offset += 4;
+  view.setFloat32(offset, state.blowingStrength ?? 0, true); offset += 4;
 
   return buffer;
 }
 
 /**
- * Decode sensor data from binary format (conductor-side)
+ * Decode sensor data from binary format (stage-side)
  * @param {ArrayBuffer} buffer - Binary message with prepended UUID
  * @returns {Object} - { musicianId, tracking, shaking, acceleration, rotationRate, quaternion }
  */
@@ -115,7 +115,7 @@ export function decodeSensorData(buffer) {
   };
   offset += 16;
 
-  const micLevel = view.getFloat32(offset, true);
+  const blowingStrength = view.getFloat32(offset, true);
 
   return {
     musicianId,
@@ -124,6 +124,6 @@ export function decodeSensorData(buffer) {
     acceleration,
     rotationRate,
     quaternion,
-    micLevel
+    blowingStrength
   };
 }

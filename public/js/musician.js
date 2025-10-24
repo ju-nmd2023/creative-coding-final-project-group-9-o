@@ -3,7 +3,7 @@ import { MotionTracker } from './motion-tracker.js';
 import { encodeSensorData } from './protocol.js';
 
 // Export initialization function that sets up the musician system
-export function initMusician() {
+export function initMusician(mic = false) {
     // WebSocket connection with auto-reconnect
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}`;
@@ -14,8 +14,8 @@ export function initMusician() {
     const INITIAL_RECONNECT_DELAY = 1000; // 1 second
 
     // Core systems
-    const sensorManager = new SensorManager();
-    const motionTracker = new MotionTracker();
+    const sensorManager = new SensorManager({ mic });
+    const motionTracker = new MotionTracker(12, sensorManager.mic);
 
     let active = false;
 
@@ -23,8 +23,6 @@ export function initMusician() {
     let statusCallback = null;
     let sensorUpdateCallback = null;
     let roleAssignedCallback = null;
-
-    let micLevel = 0;
 
     window._cc_project_role = 'musician';
 
@@ -120,8 +118,6 @@ export function initMusician() {
             sensorUpdateCallback(state);
         }
 
-        state.micLevel = micLevel;
-
         // Send to server
         if (socket.readyState === WebSocket.OPEN) {
             const binaryData = encodeSensorData(state, false); // TODO: add shake detection
@@ -149,10 +145,6 @@ export function initMusician() {
                 motionTracker.start();
             }
             return success;
-        },
-
-        setMicLevel(level) {
-            micLevel = level 
         },
 
         stop() {

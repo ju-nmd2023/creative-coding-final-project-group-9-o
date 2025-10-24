@@ -1,5 +1,5 @@
-import { musicians, assignRole } from '../conductor.js';
-import { DroneSynth } from '../synth.js';
+import { musicians, assignRole } from '../stage.js';
+import { DroneSynth, MonoSynth } from '../synth.js';
 
 let inIntro = false;
 let shouldBegin = false;
@@ -11,6 +11,65 @@ const roles = new Map([
     ["time", null],
 ]);
 const musicianRoles = new Map();
+
+// Chord progression and general sound inspiration from Berrynote:
+// https://www.youtube.com/watch?v=yBZupwGLspQ
+// transcription by zhaoxiongang on Musescore:
+// https://musescore.com/user/38691124/scores/22662850
+const chords = [
+    [[0, -12], 0], // A
+    [[0, -5, -12], 0],
+    [[4, -5, -12], 0],
+    [[-4, 5, -12], 1], // Dm / A
+    [[-4, 5, 14, -12], 2], // Dm6/A
+    [[4, -5, 12, -12], 0], // A
+    [[0, 4, 11, -6], 3], // Ebsus4
+    [[1, 3, 12, -6], 3], // ?? 
+    [[9, 0, 7, -7], 4],  // D(add9)
+    [[9, 0, 7, -7, 19], 4], // C#m7(add#5)
+    [[7, 0, 2, 11, -8], 5],
+    [[7, 0, 2, 19, -8], 5],
+    [[-1, 0, 5, 7, -15], 6], // F#m9
+    [[-1, 0, 4, 7, -17], 6],
+    [[5, 2, 7, 12, -17], 7], // E7sus4
+    [[13, 4, 9, 1, -18, -6], 8], // Ebm7
+    [[14, 4, 9, 1, -18, -6], 8],
+    [[16, 12, 5, 7, 0, -19], 9], // Dm9
+    [[19, 14, 12, 7, 0, -20], 9],
+    [[19, 12, 5, 7, 0, 28, -19], 9],
+    [[7, 0, 2, 11, -8], 5], // C#m7
+    [[6, -1, 1, 10, -9], 10], // Cm7
+    [[0, 2, 7, 9, -10], 11], // Bm7sus4
+    [[0, 2, 5, 9, -10], 11], // Bm7
+    [[0, 2, 5, 11, -5], 12],
+    [[0, 2, 7, 12, -12], 0],
+    [[0, 4, 7, 12, -12], 0],
+    [[0, 4, -12], 0],
+    [[0, -12], 0],
+];
+
+// Arpeggios for each chord (standard voicing, lowest to highest)
+const arpeggios = [
+    [0, 4, 7], // A: A, C#, E
+    [0, 2, 5], // Dm/A: A (bass), D, F
+    [0, 2, 5, 9], // Dm6/A: A (bass), D, F, B
+    [0, 3, 6], // Ebsus4: Eb, Ab, Bb, Db
+    [0, 5, 9, 14], // D(add9): D, E, A, B
+    [0, 2, 7, 11], // Cmaj7add9: C, D, G, B
+    [-3, 0, 4, 7],
+    [0, 2, 7, 5],
+    [-4, 1, 4, 6],
+    [-3, 0, 5, 7],
+    [-1, 3, 6, 10],
+    [0, 2, 5, 9],
+    [0, 2, 5, 11],
+];
+
+// Each value is an index: floor(i / arpeggio.length) = octave, i % arpeggio.length = note within chord
+const arpeggioSequence = [0, 1, 2, 3, 2, 4, 3, 5, 4, 3, 4, 5, 7, 6, 8, 7, 9, 8, 10, 9, 11, 12];
+
+let chordIndex = 0;
+let arpeggioSequenceIndex = 0;
 
 // Stateful time value
 let timeValue = 0.869;
@@ -78,12 +137,17 @@ class World {
         this.moonY = 0;
         this.sunElevation = 0;
         this.angle = 0;
+        this.lastPress = 0;
 
         this.pinwheelState = {
             spin: 0,
             spinSpeed: 3,
             decayFactor: pinwheelDecayRate,
             offset: createVector(0, 0),
+            lastNoteRadians: 0,  // Track when we last triggered a note
+            noteInterval: PI/2,   // Trigger a note every 0.5 radians (~28.6 degrees)
+            lastNoteTime: 0,      // Track when we last triggered a note (in milliseconds)
+            minNoteInterval: 70, // Minimum time between notes (ms) - prevents notes from being too rapid
         };
 
         this.stickState = {
@@ -143,18 +207,47 @@ class World {
         this.moonY = centerY + sin(moonAngle) * radius;
 
         // Update pinwheel blade spin
-        this.pinwheelState.spin += this.pinwheelState.spinSpeed * (deltaTime / 1000) * 360;
+        const spinDelta = this.pinwheelState.spinSpeed * (deltaTime / 1000) * 360;
+        this.pinwheelState.spin += spinDelta;
         this.pinwheelState.spin %= 360;
+
+        const spinDeltaRadians = radians(spinDelta);
+
+        // Check if we've crossed a note interval threshold
+        // Only trigger notes when pinwheel is actually spinning (speed > threshold)
+        if (this.pinwheelState.spinSpeed && monoSynth) {
+            const radiansSpun = (this.pinwheelState.lastNoteRadians + spinDeltaRadians);
+            const currentTime = millis();
+            const timeSinceLastNote = currentTime - this.pinwheelState.lastNoteTime;
+
+            // Check if we've spun enough to trigger a new note AND enough time has passed
+            if (radiansSpun >= this.pinwheelState.noteInterval &&
+                timeSinceLastNote >= this.pinwheelState.minNoteInterval) {
+                // Reset the counter
+                this.pinwheelState.lastNoteRadians = 0;
+                this.pinwheelState.lastNoteTime = currentTime;
+
+                // TODO: Select note based on current chord
+                // For now, this is a placeholder - you'll decide the logic
+                const noteOffset = this.selectPinwheelNote();
+
+                // Trigger the note (shorter duration as they'll be rapid)
+                monoSynth.trigger(noteOffset, 0.15);
+            } else {
+                this.pinwheelState.lastNoteRadians += spinDeltaRadians;
+            }
+        }
 
         this.pinwheelState.spinSpeed *= Math.pow(this.pinwheelState.decayFactor, deltaTime);
 
         if (this.pinwheelState.spinSpeed < 0.1) {
             this.pinwheelState.spinSpeed = 0;
+            // Reset arpeggio sequence when pinwheel stops
+            arpeggioSequenceIndex = 0;
         }
 
-        // Update pinwheel stick sway using accelerometer data
         const pinwheelData = getRoleValue('pinwheel');
-        if (pinwheelData && pinwheelData.acceleration) {
+        if (pinwheelData?.acceleration) {
             // Cap deltaTime to prevent physics explosion on lag frames
             const dt = min(deltaTime / 1000, 0.06); // Max 100ms per frame
 
@@ -212,9 +305,9 @@ class World {
             this.pinwheelState.offset.x = this.pinwheelStick.length * sin(this.stickState.angle - PI/2);
             this.pinwheelState.offset.y = this.pinwheelStick.length * (1 - cos(this.stickState.angle - PI/2));
 
-            const level = pinwheelData.micLevel;
-            this.pinwheelState.spinSpeed += level > 0.2 ? level * 0.5 : 0;
-            this.pinwheelState.spinSpeed = Math.min(this.pinwheelState.spinSpeed, 4);
+            const level = pinwheelData.blowingStrength;
+            this.pinwheelState.spinSpeed += level * 0.04;
+            this.pinwheelState.spinSpeed = Math.min(this.pinwheelState.spinSpeed, 6);
         }
     }
 
@@ -272,6 +365,35 @@ class World {
             layers.skyObjects.circle(this.moonX - 10, this.moonY - 5, 12);
             layers.skyObjects.circle(this.moonX + 8, this.moonY + 8, 8);
         }
+    }
+
+    /**
+     * Select a note for the pinwheel to play
+     * This will be based on the current chord playing in the drone synth
+     * @returns {number} semitone offset from base note
+     */
+    selectPinwheelNote() {
+        if (chordIndex >= chords.length) {
+            return 0; // Default fallback: play the root note
+        }
+
+        const arpeggioIndex = chords[chordIndex][1];
+        const currentArpeggio = arpeggios[arpeggioIndex];
+
+        // Get the current position in the sequence
+        const sequenceValue = arpeggioSequence[arpeggioSequenceIndex];
+
+        // Calculate octave and note within the chord
+        const octave = Math.floor(sequenceValue / currentArpeggio.length);
+        const noteIndex = sequenceValue % currentArpeggio.length;
+
+        // Get the base note from the arpeggio and add octave offset
+        const noteOffset = currentArpeggio[noteIndex] + (octave * 12);
+
+        // Advance to next position in sequence (wrap around)
+        arpeggioSequenceIndex = (arpeggioSequenceIndex + 1) % arpeggioSequence.length;
+
+        return noteOffset;
     }
 
     getSkyColors() {
@@ -471,6 +593,7 @@ class World {
 
 let world;
 let synth;
+let monoSynth;
 
 export function getSound() {
     return synth;
@@ -499,6 +622,20 @@ export function setup() {
         numHarmonics: 1,
         filterFrequency: 1000,
         filterResonance: 5
+    });
+
+    // Initialize monophonic synth for pinwheel notes
+    monoSynth = new MonoSynth({
+        baseNote: 420,        // Match drone synth base note
+        oscillator: { type: 'sine' },
+        envelope: {
+            attack: 0.005,    // Super quick attack (5ms)
+            decay: 0.05,      // Quick decay (50ms)
+            sustain: 0.1,     // Low sustain level
+            release: 0.1     // Very short release (80ms)
+        },
+        volume: -18,          // Quieter to not overpower the drone
+        reverbAmount: 0.4     // Nice ambient tail
     });
 
     world.update(0.869); // initial state for intro
@@ -570,7 +707,7 @@ function scheduleIntroEvents() {
 
     // Stage 0: Sky fade - play [0] and increase harmonics
     scheduleEvent(0, () => {
-        synth.playChord([-12]);
+        synth.playChord([0]);
     }, 0);
 
     scheduleEvent(0, () => {
@@ -582,7 +719,7 @@ function scheduleIntroEvents() {
     }, 2);
 
     scheduleEvent(0, () => {
-        synth.playChord([-5, -12]);
+        synth.playChord([-5, 0]);
         for (let i = 0; i < 20; i++) {
             setTimeout(() => {
                 synth.setHarmonics(5 + i);
@@ -592,10 +729,29 @@ function scheduleIntroEvents() {
 }
 
 export function mousePressed() {
-    Tone.start();
-    shouldBegin = true;
-    startTime = millis();
-    scheduleIntroEvents();
+    if (!shouldBegin) {
+        Tone.start();
+        shouldBegin = true;
+        startTime = millis();
+
+        if (inIntro) {
+            scheduleIntroEvents();
+        } else {
+            // Skip intro - initialize synth immediately
+            synth.setHarmonics(25);
+            synth.playChord(chords[chordIndex][0]);
+        }
+        return;
+    }
+
+    if (!inIntro) {
+        chordIndex++;
+        if (chordIndex < chords.length) {
+            synth.playChord(chords[chordIndex][0]);
+        } else {
+            synth.stopAll();
+        }
+    }
 }
 
 function intro() {

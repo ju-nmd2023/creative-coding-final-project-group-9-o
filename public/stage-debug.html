@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conductor</title>
+    <title>Stage</title>
     <style>
         body {
             margin: 0;
@@ -11,6 +11,54 @@
             background: #000;
             color: #0f0;
             overflow: hidden;
+        }
+        #auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #auth-screen.hidden {
+            display: none;
+        }
+        #auth-screen h1 {
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+        #auth-screen input {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            font-family: monospace;
+            background: #111;
+            color: #0f0;
+            border: 2px solid #0f0;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            width: 300px;
+        }
+        #auth-screen button {
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            font-family: monospace;
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #auth-screen button:hover {
+            background: #0c0;
+        }
+        #auth-screen .error {
+            color: #f00;
+            margin-top: 1rem;
         }
         #header {
             padding: 10px 20px;
@@ -31,15 +79,15 @@
 </head>
 <body>
     <div id="header">
-        <span>CONDUCTOR</span> | Musicians: <span id="count">0</span>
+        <span>STAGE</span> | Musicians: <span id="count">0</span>
     </div>
     <canvas id="canvas"></canvas>
     <pre id="data"></pre>
 
     <script src="https://unpkg.com/tone"></script>
-    <script src="/js/conductor.js" type="module"></script>
+    <script src="/js/stage.js" type="module"></script>
     <script type="module">
-        import { musicians } from '/js/conductor.js';
+        import { musicians } from '/js/stage.js';
 
         // Canvas setup for debug visualization
         const canvas = document.getElementById('canvas');
