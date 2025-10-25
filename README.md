@@ -5,6 +5,14 @@
 ## Overview
 
 SoMoS transforms smartphones into interactive instruments that control both sound and visuals. Participants use their phone's motion sensors (accelerometer, gyroscope) and microphone to influence a shared stage display, creating an emergent collective performance.
+A deployment is available [here](https://somos.boredvico.dev).
+
+## Generative AI Disclaimer
+
+This project was developed with the help of Generative AI tools. All architectural decisions, as well as artistic direction
+were fully controlled by me. AI supported by making implementations and refactors on code, as well as the CSS and HTML.
+
+*No generative AI was used* for the project report, nor was it used to generate images or video.
 
 ## Features
 
