@@ -81,16 +81,17 @@ let phonePress = false;
 // Flag to allow triggering stuff on press and release only once
 let phonePressHandled = false;
 
+let mainMusician = null;
+
 function getMusicianData() {
-    const musician = musicians.values().next().value;
-    if (musician) {
-        return musician;
+    if (mainMusician === null) {
+        mainMusician = musicians.values().next().value;
     }
-    return null;
+    return mainMusician;
 }
 
 function getTimeValue() {
-    const musician = musicians.values().next().value;
+    const musician = getMusicianData();
     if (musician && musician.rotationRate) {
         // Integrate rotation rate beta (deg/s) to update time
         const dt = deltaTime / 1000;
@@ -944,10 +945,12 @@ export function draw() {
         return;
     }
 
-    const { touch } = getMusicianData();
-    if (touch !== phonePress) {
-        if (touch) {
-            musicianPress(); 
+    if (getMusicianData()) {
+        const { touch } = getMusicianData();
+        if (touch !== phonePress) {
+            if (touch) {
+                musicianPress(); 
+            }
         }
     }
 

@@ -109,14 +109,18 @@ app.get('/api/instance', requireInstance, (req, res) => {
 app.get('/', (req, res) => {
   if (req.query.instance) {
     if (!instances.instances.get(req.query.instance)) {
-      res.redirect('/');
+      req.session.regenerate(() => {
+        res.redirect('/');
+      });
+      return;
     }
   }
 
-  if (req.session.instanceId != req.session.id) {
+  if (req.session.instanceId && req.session.instanceId !== req.session.id) {
     // musician and already logged in, redirect
-    res.redirect('/musician');
+    return res.redirect('/musician');
   }
+
   res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
