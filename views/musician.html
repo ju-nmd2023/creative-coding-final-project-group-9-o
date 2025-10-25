@@ -4,22 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Musician</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
-        }
-    </style>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/musician.css">
     <script src="https://cdn.jsdelivr.net/npm/p5@2.0.5/lib/p5.min.js"></script>
     <script src="https://unpkg.com/tone"></script>
 </head>
 <body>
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-message">Connecting...</div>
+
+        <div class="activation-prompt">
+            <div class="prompt-text">
+                Controls:
+                <ul>
+                    <li>Tap the screen to change the chord playing</li>
+                    <li>Blow at the phone's microphone to spin a pinwheel</li>
+                    <li>Rotate your phone left or right with your wrist to change the time of day</li>
+                    <li>Shake the phone to wiggle the pinwheel</li>
+                </ul>
+            </div>
+            <button id="activate-btn" class="btn btn-primary btn-large">Start</button>
+        </div>
+    </div>
+
     <script src="/js/p5/musician.js" type="module"></script>
 </body>
 </html>

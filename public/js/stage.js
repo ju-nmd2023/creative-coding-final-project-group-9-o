@@ -13,11 +13,6 @@ let socket;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 const INITIAL_RECONNECT_DELAY = 1000; // 1 second
-let tokenUpdateCallback = null;
-
-export function setTokenUpdateCallback(callback) {
-    tokenUpdateCallback = callback;
-}
 
 function connect() {
     socket = new WebSocket(wsUrl);
@@ -37,12 +32,7 @@ function connect() {
         if (typeof event.data === 'string') {
             // Text message - control message
             const data = JSON.parse(event.data);
-            if (data.type === 'token-update') {
-                if (tokenUpdateCallback) {
-                    tokenUpdateCallback(data.token);
-                }
-                return;
-            } else if (data.type === 'join' || data.type === 'disconnect') {
+            if (data.type === 'join' || data.type === 'disconnect') {
                 if (data.role === 'musician') {
                     window.dispatchEvent(new CustomEvent('musician', {
                         detail: data,
@@ -98,18 +88,6 @@ function reconnect() {
 // Initial connection
 connect();
 
-// Function to assign role to a musician
-export function assignRole(musicianId, role) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'assign-role',
-            musicianId: musicianId,
-            role: role
-        }));
-        console.log(`Assigned role "${role}" to musician ${musicianId}`);
-    } else {
-        console.error('Cannot assign role: socket not connected');
-    }
-}
+
 
 export { socket };

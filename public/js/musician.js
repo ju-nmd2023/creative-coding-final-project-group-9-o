@@ -22,7 +22,7 @@ export function initMusician(mic = false) {
     // Callbacks for external UI
     let statusCallback = null;
     let sensorUpdateCallback = null;
-    let roleAssignedCallback = null;
+    let readyCallback = null;
 
     window._cc_project_role = 'musician';
 
@@ -32,39 +32,32 @@ export function initMusician(mic = false) {
 
         socket.onopen = () => {
             console.log('Musician connected to server');
-            if (statusCallback) statusCallback('Connected');
+            if (statusCallback) statusCallback('Connected! Ready to perform.');
             reconnectAttempts = 0;
             socket.send(JSON.stringify({
                 type: 'identify',
                 role: 'musician'
             }));
+
+            // Notify that we're ready to start
+            if (readyCallback) {
+                readyCallback();
+            }
         };
 
         socket.onmessage = (event) => {
-            if (typeof event.data === 'string') {
-                // Text message - control message
-                const data = JSON.parse(event.data);
-                if (data.type === 'role-assigned') {
-                    console.log('Role assigned:', data.role);
-                    if (roleAssignedCallback) {
-                        roleAssignedCallback(data.role);
-                    }
-                    if (statusCallback) {
-                        statusCallback(`Connected - Role: ${data.role}`);
-                    }
-                }
-            }
+            // No role assignment needed anymore
         };
 
         socket.onclose = () => {
             console.log('WebSocket disconnected, attempting to reconnect...');
-            if (statusCallback) statusCallback('Disconnected - Reconnecting...');
+            if (statusCallback) statusCallback('Connection lost, reconnecting...');
             reconnect();
         };
 
         socket.onerror = (error) => {
             console.error('WebSocket error:', error);
-            if (statusCallback) statusCallback('Connection Error');
+            if (statusCallback) statusCallback('Connection issue, retrying...');
         };
     }
 
@@ -77,9 +70,9 @@ export function initMusician(mic = false) {
 
         reconnectAttempts++;
         const waitTime = Math.round((delay + jitter) / 1000);
-        const message = `Reconnecting in ${waitTime}s (attempt ${reconnectAttempts})...`;
+        const message = `Reconnecting in ${waitTime}s...`;
         if (statusCallback) statusCallback(message);
-        console.log(message);
+        console.log(`${message} (attempt ${reconnectAttempts})`);
 
         setTimeout(() => {
             connect();
@@ -161,8 +154,8 @@ export function initMusician(mic = false) {
             sensorUpdateCallback = callback;
         },
 
-        onRoleAssigned(callback) {
-            roleAssignedCallback = callback;
+        onReady(callback) {
+            readyCallback = callback;
         }
     };
 }

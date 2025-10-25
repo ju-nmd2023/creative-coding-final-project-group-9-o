@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SoMoS</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body class="container-centered theme-system">
+    <div class="container">
+        <div class="center-content">
+            <div id="create-instance" style="width: 600px">
+                <img src="/assets/logo.svg" alt="SoMoS" class="logo">
+                <div class="subtitle dictionary-entry">
+                    <div class="entry-header">
+                        <span class="phonetic">/ˈsoʊ.moʊs/</span>
+                        <span class="part-of-speech">noun</span>
+                    </div>
+                    <ol class="definitions">
+                        <li>(we) are.</li>
+                        <li>collaborative art experience where participants use their phones as instruments.</li>
+                    </ol>
+                </div>
+                <button id="create-instance-btn" class="btn btn-primary btn-large">Begin</button>
+            </div>
+        </div>
+
+        <div id="instructions" class="hidden">
+            <div class="instructions-layout">
+                <div class="instructions-left">
+                    <h1 class="title">Welcome to SoMoS</h1>
+                    <p class="instruction-text">Control an art piece with your phone.</p>
+
+                    <div class="instruction-steps">
+                        <div class="step">
+                            <span class="step-number">1</span>
+                            <p><strong>Scan the QR code</strong>with your phone and follow the instructions on screen</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">2</span>
+                            <p><strong>Press 'Begin'</strong>on both the phone and the computer once scanned</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-number">3</span>
+                            <p><strong>Start performing!</strong> Move, shake and blow on the phone to affect the art</p>
+                        </div>
+                    </div>
+
+                    <a href="/stage" class="btn btn-primary btn-large" style="max-width: 20rem">Open Stage View</a>
+
+                    <div class="connected-devices">
+                        <h3>Connected Participants</h3>
+                        <div id="device-count" class="device-count">0</div>
+                        <div id="device-list" class="device-list"></div>
+                    </div>
+                </div>
+
+                <div class="instructions-right">
+                    <div id="qr-section">
+                        <p class="qr-label">Scan to join:</p>
+                        <div id="qr-code" class="qr-container"></div>
+                        <p class="qr-hint">Each participant needs their own phone</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/index.js"></script>
+</body>
+</html>

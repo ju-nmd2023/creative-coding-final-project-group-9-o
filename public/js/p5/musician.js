@@ -1,12 +1,19 @@
 import { initMusician, quaternionToAxisAngle, slerpQuaternions } from '../musician.js';
 
+// UI elements
+const loadingOverlay = document.getElementById('loading-overlay');
+const loadingMessage = document.querySelector('.loading-message');
+const activationPrompt = document.querySelector('.activation-prompt');
+const activateBtn = document.getElementById('activate-btn');
+
 // Initialize musician system
-const { start, stop, onStatusChange, onSensorUpdate, onRoleAssigned, setMicLevel } = initMusician(true); // use mic
+const { start, stop, onStatusChange, onSensorUpdate, onReady } = initMusician(true); // use mic
 
 let sensorState = null;
-let role = null;
 let startTime = null;
 let introTime = null;
+let isReady = false;
+let isActivated = false;
 
 let inIntro = true;
 let introDuration = 3000;
@@ -36,17 +43,28 @@ const rings = [];
 
 let ringShift = 0;
 
-// Time role visualization state
-let timeValue = 0;
+// Day/night cycle state
+let timeValue = 0; // 0 to 1, where 0 = midnight, 0.5 = noon
 
-function timeRole() {
+function getBackgroundColor(timeValue) {
+    // Map time value to different phases of the day
+    // 0 = midnight, 0.5 = noon
+
+    const nightColor = color(10, 15, 40);
+    const dayColor = color(135, 206, 235);
+
+    // Use cosine wave for smooth day/night transition
+    // cos(0) = 1 (noon), cos(PI) = -1 (midnight)
+    const angle = timeValue * TWO_PI;
+    const t = (cos(angle) + 1) / 2; // Map from [-1, 1] to [0, 1]
+
+    return lerpColor(nightColor, dayColor, t);
+}
+
+function pinwheel() {
     const t = millis() - startTime;
-    background(10, 15, 30); // Dark night sky background
 
-    // Calculate fade-in alpha
-    const alpha = inIntro ? map(t, 0, fadeInDuration, 0, 255, true) : 255;
-
-    // Update time value based on beta rotation rate (matches prairie.js:94)
+    // Update time value based on beta rotation rate
     if (sensorState && sensorState.rotationRate) {
         const dt = deltaTime / 1000;
         // Use beta (x-axis rotation) turn speed to update time
@@ -59,109 +77,9 @@ function timeRole() {
         if (timeValue < 0) timeValue += 1;
     }
 
-    // Apply 3D rotation to make it look dimensional
-    // Tilt the orbital plane to create depth
-    push();
-
-    // Rotate based on device orientation if available, otherwise use auto-rotation
-    if (sensorState && sensorState.orientation) {
-        // Use device pitch and roll to control view angle
-        rotateX(sensorState.orientation.beta * 0.01); // Pitch
-        rotateY(sensorState.orientation.alpha * 0.01); // Yaw
-    } else {
-        // Fallback: gentle auto-rotation for visual interest
-        rotateX(0.3); // Tilt forward slightly
-        rotateY(t / 5000); // Slow rotation over time
-    }
-
-    // Convert time value to angle for orbital positions
-    const angle = timeValue * TWO_PI - HALF_PI; // Start at bottom
-
-    // Orbital parameters
-    const orbitRadius = 200;
-
-    // Calculate sun position (orbiting in the tilted plane)
-    const sunAngle = angle;
-    const sunX = cos(sunAngle) * orbitRadius;
-    const sunY = sin(sunAngle) * orbitRadius;
-    const sunZ = 0; // Stays in the orbital plane
-
-    // Calculate moon position (opposite side)
-    const moonAngle = angle + PI;
-    const moonX = cos(moonAngle) * orbitRadius;
-    const moonY = sin(moonAngle) * orbitRadius;
-    const moonZ = 0;
-
-    // Draw orbit path as a 3D ellipse/circle
-    push();
-    noFill();
-    stroke(255, 255, 255, alpha * 0.2);
-    strokeWeight(2);
-    beginShape();
-    for (let a = 0; a < TWO_PI; a += 0.1) {
-        const x = cos(a) * orbitRadius;
-        const y = sin(a) * orbitRadius;
-        vertex(x, y, 0);
-    }
-    endShape(CLOSE);
-    pop();
-
-    // Draw sun
-    push();
-    translate(sunX, sunY, sunZ);
-    noStroke();
-    // Sun glow
-    for (let i = 3; i > 0; i--) {
-        fill(255, 220, 0, alpha * 0.1 * i);
-        sphere(30 + i * 10);
-    }
-    fill(255, 220, 0, alpha);
-    sphere(30);
-    pop();
-
-    // Draw moon
-    push();
-    translate(moonX, moonY, moonZ);
-    noStroke();
-    // Moon glow
-    for (let i = 2; i > 0; i--) {
-        fill(240, 240, 255, alpha * 0.1 * i);
-        sphere(25 + i * 8);
-    }
-    fill(240, 240, 255, alpha);
-    sphere(25);
-    // Add some craters
-    fill(220, 220, 235, alpha);
-    translate(-5, -3, 20);
-    sphere(6);
-    translate(10, 8, -5);
-    sphere(4);
-    pop();
-
-    // Draw central sphere (Earth)
-    push();
-    noStroke();
-    // Subtle glow
-    fill(50, 150, 200, alpha * 0.3);
-    sphere(60);
-    fill(50, 150, 200, alpha);
-    sphere(50);
-    pop();
-
-    pop(); // End 3D rotation
-
-    // Display time value as text (in screen space, not rotated)
-    push();
-    fill(255, alpha);
-    textAlign(CENTER, CENTER);
-    textSize(20);
-    text(`Time: ${(timeValue * 24).toFixed(1)}h`, 0, height/2 - 50);
-    pop();
-}
-
-function pinwheel() {
-    const t = millis() - startTime;
-    background(0);
+    // Set background color based on time
+    const bgColor = getBackgroundColor(timeValue);
+    background(bgColor);
 
     // Calculate fade-in alpha
     const alpha = inIntro ? map(t, 0, fadeInDuration, 0, 255, true) : 255;
@@ -234,6 +152,7 @@ window.setup = function() {
     // Handle status updates
     onStatusChange((status) => {
         console.log('Status:', status);
+        loadingMessage.textContent = status;
     });
 
     // Handle sensor data updates
@@ -241,13 +160,40 @@ window.setup = function() {
         sensorState = state;
     });
 
-    // Handle role assignment
-    onRoleAssigned(async (assignedRole) => {
-        console.log('Assigned role:', assignedRole);
-        role = assignedRole;
-        startTime = millis();
-        start();
-        loop();
+    // When socket is ready, show activation prompt
+    onReady(() => {
+        console.log('Socket ready - waiting for user activation');
+        isReady = true;
+
+        // Hide loading spinner, show activation prompt
+        document.querySelector('.loading-spinner').style.display = 'none';
+        loadingMessage.style.display = 'none';
+        activationPrompt.classList.add('visible');
+    });
+
+    // Handle activation button click
+    activateBtn.addEventListener('click', async () => {
+        console.log('Activating sensors and audio...');
+
+        // Start Tone.js audio context (required for microphone)
+        await Tone.start();
+
+        // Start sensors
+        const success = await start();
+
+        if (success) {
+            isActivated = true;
+            startTime = millis();
+
+            // Hide overlay
+            loadingOverlay.classList.add('hidden');
+
+            // Start rendering
+            loop();
+        } else {
+            activationPrompt.querySelector('.prompt-text').textContent =
+                'Failed to activate sensors. Please check permissions and try again.';
+        }
     });
 
     for (let i = 0; i < ringParams.numRings; i++) {
@@ -260,29 +206,20 @@ window.setup = function() {
     }
 
     frameRate(60);
+    noLoop(); // Don't start drawing until activated
 }
 
 window.draw = function () {
-    if (!role) {
-        noLoop()
-        ringParams.speedDecay = 0.03;
+    if (!startTime) {
         return;
     }
 
-    if (role === 'pinwheel') {
-        pinwheel();
-    } else if (role === 'time') {
-        timeRole();
-    }
+    pinwheel();
 
-    if (inIntro && millis() > introDuration) {
+    if (inIntro && millis() - startTime > introDuration) {
         introTime = millis();
         inIntro = false;
     }
-}
-
-window.mousePressed = function () {
-    Tone.start();
 }
 
 // window.windowResized = function () {

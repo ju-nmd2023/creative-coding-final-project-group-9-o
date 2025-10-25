@@ -1,0 +1,14 @@
+/* Stage-specific styles - uses base utilities */
+body {
+    overflow: hidden;
+}
+
+/* Begin screen styles */
+#begin-screen {
+    transition: opacity 0.5s ease-out;
+}
+
+#begin-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}

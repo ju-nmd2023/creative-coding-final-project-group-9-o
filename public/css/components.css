@@ -1,0 +1,193 @@
+/* Button Components */
+.btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-outline:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-text-secondary);
+}
+
+.btn-large {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-lg);
+    font-size: 1.5rem;
+    border-radius: var(--radius-lg);
+}
+
+.btn-green {
+    background: var(--color-accent-green);
+    color: var(--color-bg-primary);
+}
+
+.btn-green:hover {
+    background: var(--color-accent-green-hover);
+}
+
+/* Container Components */
+.container {
+    width: 100%;
+    max-width: 600px;
+}
+
+.container-centered {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-lg);
+}
+
+/* Card/Info Box Components */
+.card {
+    background: rgba(0, 0, 0, 0.5);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+}
+
+.info-box {
+    position: absolute;
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--color-text-primary);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+}
+
+/* Typography Components */
+.title {
+    font-size: 3rem;
+    font-weight: 300;
+    letter-spacing: 0.1rem;
+}
+
+.title-large {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+}
+
+.label {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+}
+
+.description {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+
+/* Divider Component */
+.divider {
+    height: 1px;
+    background: var(--color-border-accent);
+    margin: var(--spacing-xl) 0;
+}
+
+/* Screen Overlay Components */
+.screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-bg-primary);
+    z-index: 1000;
+}
+
+/* Input Components */
+.input {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    background: var(--color-bg-secondary);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    width: 300px;
+}
+
+.input-green {
+    font-family: var(--font-family-mono);
+    color: var(--color-accent-green);
+    border-color: var(--color-accent-green);
+}
+
+/* Error Component */
+.error {
+    color: var(--color-error);
+    margin-top: var(--spacing-sm);
+}
+
+/* Debug Components */
+.debug-header {
+    padding: 10px 20px;
+    border-bottom: 1px solid currentColor;
+}
+
+.debug-data {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    font-size: 10px;
+    opacity: 0.5;
+    white-space: pre;
+}
+
+/* Theme Variants */
+.theme-system {
+    font-family: var(--font-family-system);
+}
+
+.theme-mono {
+    font-family: var(--font-family-mono);
+}
+
+.theme-green {
+    color: var(--color-accent-green);
+}
+
+.theme-cyan {
+    color: var(--color-accent-cyan);
+}
+
+/* Responsive Typography */
+@media (max-width: 600px) {
+    .title {
+        font-size: 2rem;
+    }
+    .title-large {
+        font-size: 1.5rem;
+    }
+}

@@ -1,6 +1,6 @@
 #import "@preview/ilm:1.4.1": *
 
-#let piece = "Untitled"
+#let piece = "SoMoS"
 
 #set text(lang: "en")
 #show raw: set text(font: ("JetBrains Mono"), size: 9pt)
@@ -128,6 +128,21 @@ him, "each person draws a line differently and each person understands words dif
 Even long after his passing, new works of his are being created. All it takes are the
 instructions, a couple people, and a wall.
 
+== Charles O'Rear
+
+Charels O'Rear is a National Geographic photographer. In 1996, he took a picture
+of green hills in California. According to some journalists, it's the most
+viewed photograph in the world. It is the default wallpaper for Windows XP.
+
+It is an iconic photograph, embedded deep in internet culture. I grew up with this
+picture. It reflects peace, serenity, bliss. I thought it would be the perfect setting
+for an art piece.
+
+#figure(
+  image("bliss.png", width: 60%),
+  caption: [#emph("Bliss") by Charles O'Rear]
+)
+
 = #piece
 
 Like Sol LeWitt, I wanted to try and make the art a collaborative process, not just during
@@ -146,7 +161,7 @@ then be sent to and processed by a server. It is forwarded to the exibition's co
 uses this data to influence small artpieces and audio, each a 'sketch'. The exibition
 cycles a set of these sketches periodically, keeping the theme of audience interaction.
 
-The server uses Node.js with Express and Socket.IO to serve the webpage and connect
+The server uses Node.js with Express and websockets to serve the webpage and connect
 to clients. The exhibition computer is connected with authentication to ensure only one client
 can display the artwork. Participants can connect to the server freely, through a direct link or
 a QR code.
@@ -155,5 +170,44 @@ By using Javascript's native events, participants can interact with the work by 
 moving their phone. The way it interacts with the artwork and sound displayed
 on the exhibition computer is determined by the specific 'sketch' active at the time.
 
+In the turned in version, anyone can create their own instance of the artwork, and connect to with a QR code.
 
+The sketch displayed on the main computer is a field, with generative hills. I implemented a day/night cycle by rotating around
+a sun and moon, and blending different colors in the background to create pretty lighting for the sky. At night stars fade in and twinkle
+as the moon moves. A pinhweel sits embedded in the grass.
+
+For the sound, I used a custom polyphonic synthesizer for a background drone, that plays a series of chords. When the user taps on their
+phone, the next chord in the sequence is played. The pinwheel plays an arpeggio of the chord when spun, by blowing on the phone's microphone.
+Shaking the phone applies some force to the pinwheel which moves back and forth like a spring. Rotating the phone will change the time of day,
+applying a filter and changing the waveform of the drone synth.
+
+The phone also has a sketch of its own, showing the phone's rotation with a cube at the center, and dots in concentric rings spinning around
+it as you blow into the microphone. The sketch has the singular purpose of showing feedback to the sensor data.
+
+== Screenshots
+#figure(
+  image("somos_phone.png", width: 60%),
+  caption: [Phone interface]
+)
+#figure(
+  image("somos_stage.png", width: 60%),
+  caption: [SoMoS main sketch]
+)
+
+= Conclusions
+
+My original intention was to make a piece that would focuse on the sound, placing a higher responsibility on the participant to create
+music. However, over the course of development the idea shifted into making an interactive art piece, focusing on the novel use of a phone
+to interface with the piece. While I don't inherently regret that, I would've liked to make an actual collaborative art piece like
+Sol LeWitt.
+
+The exhibition was constrained by time and equipment. My laptop was only able to go so loud, and there were a lot of other people in the room
+making sound with their computers. I feel I was unable to fulfill the purpose of the piece, to give power to the audience to create art. However,
+I did make them participate in it, and that means something to me.
+
+I saw other people's works implemented their inspirations more explicitly into their work. While I adapted some techniques of my inspirations,
+especially the use and transformation of noise, I took my own direction when it came to the spirit and intention of the piece. Most of the artists
+I used for inspiration in my portfolio defined their works by the algorithm used to draw them. I, on the other hand, started with a vision for
+a scene and used whatever means necessary to render it to the screen. Not a lot was 'generated', per se, rather it was drawn according to
+hard-coded specifications.
 

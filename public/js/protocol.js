@@ -2,7 +2,7 @@
  * Binary Protocol for Sensor Data
  *
  * Message Structure (Musician -> Server -> Stage):
- * - UUID: 36 bytes (ASCII string, fixed length) - prepended by server
+ * - Session ID: 32 bytes (ASCII string, fixed length) - prepended by server
  * - Flags: 1 byte
  *   - Bit 0: touch (touching screen)
  *   - Bit 1: shaking
@@ -19,15 +19,15 @@
  * - Quaternion W: 4 bytes (float32)
  * - Mic level: 4 bytes (float32)
  *
- * Total: 81 bytes (36 UUID + 1 flags + 44 sensor data)
+ * Total: 77 bytes (32 session ID + 1 flags + 44 sensor data)
  *
  * Client sends: 45 bytes (flags + sensor data)
- * Server adds UUID and forwards: 81 bytes
+ * Server adds session ID and forwards: 77 bytes
  */
 
 export const MESSAGE_SIZE = 45;
-export const MESSAGE_WITH_ID_SIZE = 81;
-export const UUID_SIZE = 36;
+export const MESSAGE_WITH_ID_SIZE = 77;
+export const SESSION_ID_SIZE = 32;
 
 // Flag bit positions
 export const FLAG_TOUCH = 0;
@@ -75,22 +75,22 @@ export function encodeSensorData(state, isShaking = false) {
 
 /**
  * Decode sensor data from binary format (stage-side)
- * @param {ArrayBuffer} buffer - Binary message with prepended UUID
+ * @param {ArrayBuffer} buffer - Binary message with prepended session ID
  * @returns {Object} - { musicianId, touch, shaking, acceleration, rotationRate, quaternion }
  */
 export function decodeSensorData(buffer) {
   const view = new DataView(buffer);
 
-  // Extract musician ID (first 36 bytes)
-  const idBytes = new Uint8Array(buffer, 0, UUID_SIZE);
+  // Extract musician ID (first 32 bytes)
+  const idBytes = new Uint8Array(buffer, 0, SESSION_ID_SIZE);
   const musicianId = new TextDecoder().decode(idBytes);
 
   // Extract flags
-  const flags = view.getUint8(UUID_SIZE);
+  const flags = view.getUint8(SESSION_ID_SIZE);
   const touch = !!(flags & (1 << FLAG_TOUCH));
   const shaking = !!(flags & (1 << FLAG_SHAKING));
 
-  let offset = UUID_SIZE + 1;
+  let offset = SESSION_ID_SIZE + 1;
 
   // Extract sensor data
   const acceleration = {

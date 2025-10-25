@@ -1,0 +1,63 @@
+/* Musician-specific styles - uses base utilities */
+body {
+    overflow: hidden;
+}
+
+/* Loading and activation overlay */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-bg-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    gap: var(--spacing-lg);
+}
+
+#loading-overlay.hidden {
+    display: none;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--color-text-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-message {
+    font-size: 1.2rem;
+    color: var(--color-text-primary);
+    text-align: center;
+}
+
+.activation-prompt {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.activation-prompt.visible {
+    display: flex;
+}
+
+.prompt-text {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    max-width: 400px;
+}

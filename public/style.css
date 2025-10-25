@@ -1,21 +1,38 @@
-* {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-}
+/*
+ * Legacy style.css - This file is deprecated
+ *
+ * Please use the new modular CSS system:
+ * - /css/base.css - Reset, variables, and utility classes
+ * - /css/components.css - Reusable component styles
+ * - /css/[page].css - Page-specific styles
+ *
+ * To use the new system, add these imports to your HTML:
+ * <link rel="stylesheet" href="/css/base.css">
+ * <link rel="stylesheet" href="/css/components.css">
+ * <link rel="stylesheet" href="/css/your-page.css">
+ */
 
+/* Legacy styles for backwards compatibility */
 html, body {
-    width: 100%;
-    height: 100%;
     position: fixed;
 }
 
-canvas {
-    display: block;
+#info-container {
+    /* Use .info-box class instead */
+}
+
+#qr-code {
+    /* Use .mt-sm class instead */
+}
+
+#copy-link {
+    /* Use .btn class instead */
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    cursor: pointer;
 }
 
 #p5-main {
-    width: 100vw;
-    height: 100vh;
+    /* Use .fullscreen-viewport class instead */
 }
 
