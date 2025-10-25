@@ -1,0 +1,164 @@
+/* Page-specific styles using base and component classes */
+body {
+    font-family: var(--font-family-system);
+}
+
+.container {
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: var(--spacing-xs);
+}
+
+.subtitle {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.primary-action {
+    margin-bottom: var(--spacing-xl);
+}
+
+/* Instructions Section */
+.instructions-content {
+    margin-bottom: var(--spacing-xl);
+    text-align: left;
+}
+
+.instruction-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.instruction-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.step p {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+}
+
+/* QR Code Section */
+#qr-section {
+    margin: var(--spacing-xl) 0;
+    padding: var(--spacing-lg);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.qr-label {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-primary);
+}
+
+.qr-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-lg);
+    background: white;
+    border-radius: var(--radius-md);
+    margin: var(--spacing-md) auto;
+    width: fit-content;
+}
+
+.qr-container img,
+.qr-container canvas {
+    display: block;
+    border-radius: var(--radius-sm);
+}
+
+.qr-hint {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-md);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .instruction-text {
+        font-size: 1rem;
+    }
+
+    .step {
+        gap: var(--spacing-sm);
+        padding: var(--spacing-sm);
+    }
+
+    .step-number {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 1rem;
+    }
+
+    #qr-section {
+        padding: var(--spacing-md);
+    }
+
+    .qr-container {
+        padding: var(--spacing-md);
+    }
+}
+
+/* Legacy class support - maps old classes to new components */
+.musician-button {
+    /* Extends: .btn .btn-primary .btn-large */
+}
+
+.musician-button .title {
+    /* Extends: .title-large */
+}
+
+.musician-button .description {
+    /* Extends: .description */
+}
+
+.staff-section {
+    text-align: center;
+}
+
+.staff-label {
+    /* Extends: .label */
+    margin-bottom: var(--spacing-sm);
+}
+
+.staff-link {
+    /* Extends: .btn .btn-outline */
+    font-size: 0.9rem;
+}

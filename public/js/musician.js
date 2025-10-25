@@ -32,7 +32,7 @@ export function initMusician(mic = false) {
 
         socket.onopen = () => {
             console.log('Musician connected to server');
-            if (statusCallback) statusCallback('Connected');
+            if (statusCallback) statusCallback('Joining session...');
             reconnectAttempts = 0;
             socket.send(JSON.stringify({
                 type: 'identify',
@@ -50,7 +50,7 @@ export function initMusician(mic = false) {
                         roleAssignedCallback(data.role);
                     }
                     if (statusCallback) {
-                        statusCallback(`Connected - Role: ${data.role}`);
+                        statusCallback(`Ready! Your part: ${data.role}`);
                     }
                 }
             }
@@ -58,13 +58,13 @@ export function initMusician(mic = false) {
 
         socket.onclose = () => {
             console.log('WebSocket disconnected, attempting to reconnect...');
-            if (statusCallback) statusCallback('Disconnected - Reconnecting...');
+            if (statusCallback) statusCallback('Connection lost, reconnecting...');
             reconnect();
         };
 
         socket.onerror = (error) => {
             console.error('WebSocket error:', error);
-            if (statusCallback) statusCallback('Connection Error');
+            if (statusCallback) statusCallback('Connection issue, retrying...');
         };
     }
 
@@ -77,9 +77,9 @@ export function initMusician(mic = false) {
 
         reconnectAttempts++;
         const waitTime = Math.round((delay + jitter) / 1000);
-        const message = `Reconnecting in ${waitTime}s (attempt ${reconnectAttempts})...`;
+        const message = `Reconnecting in ${waitTime}s...`;
         if (statusCallback) statusCallback(message);
-        console.log(message);
+        console.log(`${message} (attempt ${reconnectAttempts})`);
 
         setTimeout(() => {
             connect();

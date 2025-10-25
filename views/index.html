@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SoMoS</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body class="container-centered theme-system">
+    <div class="container">
+        <div id="create-instance">
+            <h1 class="title">SoMoS</h1>
+            <p class="subtitle">(we) are. collaborative art</p>
+            <button id="create-instance-btn" class="btn btn-primary btn-large">Begin</button>
+        </div>
+
+        <div id="instructions" class="hidden">
+            <h1 class="title">Welcome to SoMoS</h1>
+            <div class="instructions-content">
+                <p class="instruction-text">SoMoS is a collaborative performance experience where participants use their phones as instruments.</p>
+
+                <div class="instruction-steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <p><strong>Share the QR code</strong> below with participants so they can join on their phones</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <p><strong>Open the stage view</strong> on a large screen or projector to see the visualization</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <p><strong>Start performing!</strong> Participants move their phones to create sound and visuals together</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="qr-section">
+                <p class="qr-label">Scan to join as a participant:</p>
+                <div id="qr-code" class="qr-container"></div>
+                <p class="qr-hint">Each participant needs their own phone</p>
+            </div>
+
+            <a href="/stage" class="btn btn-primary btn-large mt-lg">Open Stage View</a>
+        </div>
+    </div>
+
+    <script src="/js/index.js"></script>
+</body>
+</html>

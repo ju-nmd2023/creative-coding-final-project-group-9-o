@@ -29,7 +29,7 @@ export class SensorManager {
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 const permission = await DeviceMotionEvent.requestPermission();
                 if (permission !== 'granted') {
-                    this._notifyError('Permission denied');
+                    this._notifyError('Motion sensors are required. Please allow access in your browser settings.');
                     return false;
                 }
             }
