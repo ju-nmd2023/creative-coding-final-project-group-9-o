@@ -22,7 +22,7 @@ export function initMusician(mic = false) {
     // Callbacks for external UI
     let statusCallback = null;
     let sensorUpdateCallback = null;
-    let roleAssignedCallback = null;
+    let readyCallback = null;
 
     window._cc_project_role = 'musician';
 
@@ -32,28 +32,21 @@ export function initMusician(mic = false) {
 
         socket.onopen = () => {
             console.log('Musician connected to server');
-            if (statusCallback) statusCallback('Joining session...');
+            if (statusCallback) statusCallback('Connected! Ready to perform.');
             reconnectAttempts = 0;
             socket.send(JSON.stringify({
                 type: 'identify',
                 role: 'musician'
             }));
+
+            // Notify that we're ready to start
+            if (readyCallback) {
+                readyCallback();
+            }
         };
 
         socket.onmessage = (event) => {
-            if (typeof event.data === 'string') {
-                // Text message - control message
-                const data = JSON.parse(event.data);
-                if (data.type === 'role-assigned') {
-                    console.log('Role assigned:', data.role);
-                    if (roleAssignedCallback) {
-                        roleAssignedCallback(data.role);
-                    }
-                    if (statusCallback) {
-                        statusCallback(`Ready! Your part: ${data.role}`);
-                    }
-                }
-            }
+            // No role assignment needed anymore
         };
 
         socket.onclose = () => {
@@ -161,8 +154,8 @@ export function initMusician(mic = false) {
             sensorUpdateCallback = callback;
         },
 
-        onRoleAssigned(callback) {
-            roleAssignedCallback = callback;
+        onReady(callback) {
+            readyCallback = callback;
         }
     };
 }

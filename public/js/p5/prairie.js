@@ -1,17 +1,12 @@
-import { musicians, assignRole } from '../stage.js';
+import { musicians } from '../stage.js';
 import { DroneSynth, MonoSynth } from '../synth.js';
 
 let inIntro = true;
 let shouldBegin = false;
-let autoChords = true;
+let autoChords = false;
 
 const hill_params = new Array(4);
 const layers = {};
-const roles = new Map([
-    ["pinwheel", null],
-    ["time", null],
-]);
-const musicianRoles = new Map();
 
 // Chord progression and general sound inspiration from Berrynote:
 // https://www.youtube.com/watch?v=yBZupwGLspQ
@@ -81,53 +76,42 @@ let introTime = 0;
 // needed to start audio
 let startTime = 0;
 
-function getRoleValue(role) {
-    if (role === 'pinwheel') {
-        const data = musicians.get(roles.get(role));
-        if (data) return data;
-    } else if (role === 'time') {
-        const data = musicians.get(roles.get(role));
-        if (data && data.rotationRate) {
-            // Integrate rotation rate beta (deg/s) to update time
-            const dt = deltaTime / 1000;
+// Previous frame's data on phone press
+let phonePress = false;
+// Flag to allow triggering stuff on press and release only once
+let phonePressHandled = false;
 
-            // Scale rotation rate to time change (adjust multiplier to taste)
-            const timeSpeed = data.rotationRate.beta / 360; // 360 deg/s = 1 full day/s
-            timeValue += timeSpeed * dt;
+function getMusicianData() {
+    const musician = musicians.values().next().value;
+    if (musician) {
+        return musician;
+    }
+    return null;
+}
 
-            // Wrap around [0, 1]
-            timeValue = timeValue % 1;
-            if (timeValue < 0) timeValue += 1;
+function getTimeValue() {
+    const musician = musicians.values().next().value;
+    if (musician && musician.rotationRate) {
+        // Integrate rotation rate beta (deg/s) to update time
+        const dt = deltaTime / 1000;
 
-            return timeValue;
-        } else {
-            // Fallback: start at intro time (0.869) and auto-animate slowly
-            // return 0.869;
-            return (0.869 + (millis() - introTime) / 70000) % 1;
-        }
+        // Scale rotation rate to time change (adjust multiplier to taste)
+        const timeSpeed = musician.rotationRate.beta / 360; // 360 deg/s = 1 full day/s
+        timeValue += timeSpeed * dt;
+
+        // Wrap around [0, 1]
+        timeValue = timeValue % 1;
+        if (timeValue < 0) timeValue += 1;
+
+        return timeValue;
+    } else {
+        // Fallback: start at intro time (0.869) and auto-animate slowly
+        // return 0.869;
+        return (0.869 + (millis() - introTime) / 70000) % 1;
     }
 }
 
-window.addEventListener('musician', (e) => {
-    console.log(e.detail);
-    if (e.detail.type === 'join') {
-        for (let [role, musician] of roles) {
-            if (musician === null) {
-                roles.set(role, e.detail.id);
-                musicianRoles.set(e.detail.id, role);
-                console.log(`new musician, assigned role ${role}`);
-                // Send role assignment to the musician
-                assignRole(e.detail.id, role);
-                break;
-            }
-        }
-    } else if (e.detail.type === 'disconnect') {
-        const role = musicianRoles.get(e.detail.id);
-        console.log(`musician quit, role ${role} clear`);
-        musicianRoles.delete(e.detail.id);
-        roles.set(role, null);
-    };
-});
+
 
 class World {
     constructor() {
@@ -247,7 +231,7 @@ class World {
             arpeggioSequenceIndex = 0;
         }
 
-        const pinwheelData = getRoleValue('pinwheel');
+        const pinwheelData = getMusicianData();
         if (pinwheelData?.acceleration) {
             // Cap deltaTime to prevent physics explosion on lag frames
             const dt = min(deltaTime / 1000, 0.06); // Max 100ms per frame
@@ -738,9 +722,8 @@ function scheduleIntroEvents() {
     }, 3);
 }
 
-export function mousePressed() {
+export function startSketch() {
     if (!shouldBegin) {
-        Tone.start();
         shouldBegin = true;
         startTime = millis();
 
@@ -751,6 +734,11 @@ export function mousePressed() {
             synth.setHarmonics(25);
             synth.playChord(chords[chordIndex][0]);
         }
+    }
+}
+
+export function mousePressed() {
+    if (!shouldBegin) {
         return;
     }
 
@@ -938,6 +926,17 @@ function updateSoundForTimeOfDay(rampTime = soundUpdateInterval / 1000) {
     synth.masterGain.gain.rampTo(volume, rampTime);
 }
 
+function musicianPress() {
+    if (!inIntro) {
+        chordIndex++;
+        if (chordIndex < chords.length) {
+            synth.playChord(chords[chordIndex][0]);
+        } else {
+            synth.stopAll();
+        }
+    }
+}
+
 export function draw() {
     if (!shouldBegin) return;
     if (inIntro) {
@@ -945,8 +944,15 @@ export function draw() {
         return;
     }
 
+    const { touch } = getMusicianData();
+    if (touch !== phonePress) {
+        if (touch) {
+            musicianPress(); 
+        }
+    }
+
     // Get time from musician's phone orientation (or fallback to auto-animate)
-    let t = getRoleValue('time');
+    let t = getTimeValue();
     world.update(t);
     world.render();
 
@@ -970,5 +976,6 @@ export function draw() {
     // Pinwheel (lighting applied during rendering)
     image(layers.pinwheel, 0, 0);
 
+    phonePress = touch;
     // noLoop(); // Comment out to see animation, or uncomment for static
 }

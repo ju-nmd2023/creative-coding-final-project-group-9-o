@@ -5,6 +5,24 @@ body {
 
 .container {
     text-align: center;
+    width: 100%;
+    max-width: 100%;
+}
+
+.center-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo {
+    width: 100%;
+    max-height: 300px;
+    margin-bottom: -60px;
+    /* object-fit: contain; */
+    object-position: center;
 }
 
 h1 {
@@ -15,14 +33,65 @@ h1 {
     margin-bottom: var(--spacing-2xl);
 }
 
+/* Dictionary entry styling */
+.dictionary-entry {
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.6;
+}
+
+.dictionary-entry .entry-header {
+    margin-bottom: 0.5rem;
+}
+
+.dictionary-entry .phonetic {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-right: 0.5rem;
+}
+
+.dictionary-entry .part-of-speech {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+.dictionary-entry .definitions {
+    list-style-position: outside;
+    padding-left: 1.5rem;
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.dictionary-entry .definitions li {
+    margin-bottom: 0.5rem;
+    padding-left: 0.5rem;
+}
+
 .primary-action {
     margin-bottom: var(--spacing-xl);
 }
 
-/* Instructions Section */
-.instructions-content {
-    margin-bottom: var(--spacing-xl);
+/* Horizontal Layout for Instructions */
+.instructions-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: var(--spacing-2xl);
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.instructions-left {
     text-align: left;
+}
+
+.instructions-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: var(--spacing-lg);
 }
 
 .instruction-text {
@@ -30,21 +99,20 @@ h1 {
     line-height: 1.6;
     color: var(--color-text-primary);
     margin-bottom: var(--spacing-lg);
-    text-align: center;
 }
 
 .instruction-steps {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
 }
 
 .step {
     display: flex;
     align-items: flex-start;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
     background: rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
@@ -54,29 +122,66 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
     background: var(--color-text-primary);
     color: var(--color-bg-primary);
     border-radius: 50%;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .step p {
     margin: 0;
-    line-height: 1.6;
+    line-height: 1.5;
     color: var(--color-text-primary);
+    font-size: 0.95rem;
 }
 
-/* QR Code Section */
-#qr-section {
-    margin: var(--spacing-xl) 0;
+/* Connected Devices */
+.connected-devices {
+    margin-top: var(--spacing-2xl);
     padding: var(--spacing-lg);
     background: rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-lg);
     border: 1px solid var(--color-border);
+}
+
+.connected-devices h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.device-count {
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.device-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.device-item {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+/* QR Code Section */
+#qr-section {
+    padding: var(--spacing-lg);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    text-align: center;
 }
 
 .qr-label {

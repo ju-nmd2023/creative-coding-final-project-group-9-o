@@ -88,18 +88,6 @@ function reconnect() {
 // Initial connection
 connect();
 
-// Function to assign role to a musician
-export function assignRole(musicianId, role) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'assign-role',
-            musicianId: musicianId,
-            role: role
-        }));
-        console.log(`Assigned role "${role}" to musician ${musicianId}`);
-    } else {
-        console.error('Cannot assign role: socket not connected');
-    }
-}
+
 
 export { socket };

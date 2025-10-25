@@ -16,16 +16,17 @@ const app = express();
 const sessionParser = session({
   secret: randomBytes(32).toString('hex'),
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true, // Allow session creation without data
   cookie: {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'strict'
+    sameSite: 'lax' // Allow cookie on same-site redirects
   }
 });
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded());
 app.use(cookieParser());
 app.use(sessionParser);
 
@@ -36,6 +37,8 @@ function requireInstance(req, res, next) {
   if (req.session?.instanceId) {
     next();
   } else {
+    logger.debug(`protected route reached with no instanceid`);
+    logger.debug(req.session);
     if (req.path.startsWith('/api/')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -43,9 +46,6 @@ function requireInstance(req, res, next) {
   }
 }
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
-});
 
 app.get('/stage', requireInstance, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'stage.html'));
@@ -60,12 +60,32 @@ app.get('/musician-debug', requireInstance, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'musician-debug.html'));
 });
 
-// Musician join page
-app.get('/join/:instanceId', (req, res) => {
-  const { instanceId } = req.params;
+// Musician join page - sets instance from query param and redirects
+app.get('/join', (req, res) => {
+  const instanceId = req.query.instance;
+  logger.debug(`join request instanceid = ${instanceId}`);
+
+  if (!instanceId) {
+    return res.redirect('/');
+  }
+
   // TODO: check if instance exists
   req.session.instanceId = instanceId;
   req.session.role = 'musician';
+
+  // Save session before redirecting
+  req.session.save((err) => {
+    if (err) {
+      logger.error('Failed to save session', { error: err.message });
+      return res.redirect('/');
+    }
+    logger.debug(`join success set session ${req.session.instanceId}`);
+    res.redirect('/musician');
+  });
+});
+
+// Musician page (protected)
+app.get('/musician', requireInstance, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'musician.html'));
 });
 
@@ -84,6 +104,20 @@ app.get('/api/instance', requireInstance, (req, res) => {
   } else {
     res.status(404).json({ error: 'Instance not found' });
   }
+});
+
+app.get('/', (req, res) => {
+  if (req.query.instance) {
+    if (!instances.instances.get(req.query.instance)) {
+      res.redirect('/');
+    }
+  }
+
+  if (req.session.instanceId != req.session.id) {
+    // musician and already logged in, redirect
+    res.redirect('/musician');
+  }
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 // WebSocket server

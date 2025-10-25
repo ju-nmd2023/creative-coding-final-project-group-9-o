@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stage</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/p5@2.0.5/lib/p5.min.js"></script>
     <script src="https://unpkg.com/tone"></script>
     <link rel="stylesheet" href="/css/base.css">
@@ -12,6 +13,13 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body class="fullscreen-viewport">
+    <div id="begin-screen" class="screen-overlay flex-center-column">
+        <div class="container text-center">
+            <h1 class="title mb-md">Stage</h1>
+            <p class="subtitle mb-xl">Click to begin audio experience</p>
+            <button id="begin-button" class="btn btn-primary btn-large">Begin</button>
+        </div>
+    </div>
     <script src="/js/p5/stage.js" type="module"></script>
 </body>
 </html>

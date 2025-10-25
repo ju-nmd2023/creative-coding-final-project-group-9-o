@@ -16,6 +16,7 @@ class InstanceManager {
       id: instanceId,
       stage: null,
       musicians: new Map(),
+      lastActivity: Date.now(),
     };
     this.instances.set(instanceId, instance);
     return instance;
@@ -83,24 +84,61 @@ class InstanceManager {
     logger.info('Client disconnected', { role, sessionId, instanceId: instance.id });
 
     if (role === 'stage') {
-      logger.warn('Stage disconnected, closing instance', { instanceId: instance.id });
-      // Close all musician connections and remove instance
-      for (const musician of instance.musicians.values()) {
-        musician.close();
+      // Don't destroy instance on stage disconnect - just remove reference
+      if (instance.stage === ws) {
+        instance.stage = null;
+        logger.info('Stage disconnected, instance kept alive', { instanceId: instance.id });
       }
-      this.instances.delete(instance.id);
+      // Update last activity for cleanup task
+      instance.lastActivity = Date.now();
     } else if (role === 'musician') {
       instance.musicians.delete(sessionId);
-      // Notify stage
+      // Update last activity for cleanup task
+      instance.lastActivity = Date.now();
+
+      // Notify stage if connected
       if (instance.stage && instance.stage.readyState === 1) {
         instance.stage.send(JSON.stringify({
-          type: 'disconnect',
-          role: 'musician',
-          id: sessionId,
+          type: 'musician-left',
+          musicianId: sessionId,
           count: instance.musicians.size,
         }));
       }
     }
+  }
+
+  // Cleanup task to remove stale instances
+  startCleanupTask() {
+    const STALE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+    const CLEANUP_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
+
+    setInterval(() => {
+      const now = Date.now();
+      for (const [instanceId, instance] of this.instances.entries()) {
+        // Check if instance has been inactive
+        const timeSinceActivity = now - instance.lastActivity;
+
+        if (timeSinceActivity > STALE_TIMEOUT) {
+          logger.info('Cleaning up stale instance', {
+            instanceId,
+            inactiveMinutes: Math.floor(timeSinceActivity / 60000)
+          });
+
+          // Close all connections
+          if (instance.stage && instance.stage.readyState === 1) {
+            instance.stage.close();
+          }
+          for (const musician of instance.musicians.values()) {
+            if (musician.readyState === 1) {
+              musician.close();
+            }
+          }
+
+          // Remove instance
+          this.instances.delete(instanceId);
+        }
+      }
+    }, CLEANUP_INTERVAL);
   }
 
   handleMessage(ws, instance, msg, isBinary) {
@@ -116,31 +154,19 @@ class InstanceManager {
         }
       } else {
         const data = JSON.parse(msg.toString());
-        if (role === 'stage' && data.type === 'assign-role') {
-          this.assignRole(instance, data);
-        }
       }
     } catch (err) {
       logger.error('Error processing message', { error: err.message, sessionId, instanceId: instance.id });
     }
   }
 
-  assignRole(instance, data) {
-    const { musicianId, role } = data;
-    const musician = instance.musicians.get(musicianId);
 
-    if (musician && musician.readyState === 1) {
-      musician.send(JSON.stringify({
-        type: 'role-assigned',
-        role: role,
-      }));
-      logger.info('Assigned role to musician', { musicianId, role, instanceId: instance.id });
-    } else {
-      logger.warn('Failed to assign role: musician not found or not ready', { musicianId, instanceId: instance.id });
-    }
-  }
 }
 
 const instances = new InstanceManager();
+
+// Start the cleanup task
+instances.startCleanupTask();
+
 export default instances;
 
