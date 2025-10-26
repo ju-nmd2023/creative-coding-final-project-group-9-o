@@ -84,7 +84,7 @@ let phonePressHandled = false;
 let mainMusician = null;
 
 function getMusicianData() {
-    if (mainMusician === null) {
+    if (!mainMusician) {
         mainMusician = musicians.values().next().value;
     }
     return mainMusician;
