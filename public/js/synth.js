@@ -223,7 +223,7 @@ export class DroneSynth {
 
         // Update volume based on number of notes
         const numNotes = targetFrequencies.length;
-        const chordReduction = numNotes > 1 ? 20 * Math.log10(numNotes) : 0;
+        const chordReduction = numNotes > 1 ? 20 * Math.log10(numNotes) : 6;
         const volume = -6 - chordReduction;
 
         for (const osc of this.activeVoices.values()) {

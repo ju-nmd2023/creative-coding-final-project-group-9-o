@@ -89,6 +89,11 @@ app.get('/musician', requireInstance, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'musician.html'));
 });
 
+// Trailer page (public, no auth required)
+app.get('/trailer', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'trailer.html'));
+});
+
 // API routes
 app.post('/api/instance/new', (req, res) => {
   const instanceId = req.session.id;
