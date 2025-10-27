@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(sessionParser);
 
 // Serve static assets from public (JS, CSS, images)
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'views', 'stage.html')));
 
 function requireInstance(req, res, next) {
   if (req.session?.instanceId) {
