@@ -85,10 +85,15 @@ let mainMusician = null;
 
 function getMusicianData() {
     if (!mainMusician) {
-        mainMusician = musicians.values().next().value;
+        return null;
     }
-    return mainMusician;
+    return musicians.get(mainMusician);
 }
+
+window.addEventListener('musician', (e) => {
+    mainMusician = e.detail.id;
+    console.log(`Reading data from musician ${mainMusician}`);
+});
 
 function getTimeValue() {
     const musician = getMusicianData();
@@ -979,6 +984,6 @@ export function draw() {
     // Pinwheel (lighting applied during rendering)
     image(layers.pinwheel, 0, 0);
 
-    phonePress = touch;
+    phonePress = getMusicianData()?.touch;
     // noLoop(); // Comment out to see animation, or uncomment for static
 }
