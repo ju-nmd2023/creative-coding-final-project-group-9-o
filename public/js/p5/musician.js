@@ -174,7 +174,13 @@ window.setup = function() {
     // Handle activation button click
     activateBtn.addEventListener('click', async () => {
         console.log('Activating sensors and audio...');
-
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission !== 'granted') {
+                this._notifyError('Motion sensors are required. Please allow access in your browser settings.');
+                return false;
+            }
+        }
         // Start Tone.js audio context (required for microphone)
         await Tone.start();
 
