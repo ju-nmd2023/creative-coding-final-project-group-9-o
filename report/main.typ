@@ -44,13 +44,15 @@ that our ears have apparently been designed with an attunement to music, to rhyt
 And what I love most about music, and art in general, is that it is a language: it transmits information, it has
 certain rules, and it is unique to every culture, ethnicity, country or group of people.
 
-Most people love art. But most people don't make it. I feel most people would like
-to make art. Of course, picking up a pencil and learning to draw, or learning an instrument,
-or in general learning to 'speak' the language of art takes both time and patience,
-which most people don't have enough of. Some people don't even try. I want to change that.
-I want to see what kind of art the average person can make, when given the chance to do so.
-While I don't proclaim myself an artist, per se, I feel I can be an interpreter of sorts, using a computer
-as my medium.
+I am reasonably confident that, like me, there are a lot of people that are very interested in art
+but have mostly only engaged in it as the consumer; wanting to produce it but falling short on
+time or motivation. I want my project to try and push people over that line, to show them
+that they too should try and engage art from the other side, becoming the artist instead of
+the audience.
+
+The intended audience for my piece, then, are those who want to produce art, engage in creative
+works, but never seem to find the confidence, time, or motivation to try and keep trying.
+
 
 #pagebreak()
 
@@ -143,6 +145,40 @@ for an art piece.
   caption: [#emph("Bliss") by Charles O'Rear]
 )
 
+== Aesthetic Theory
+
+=== Impressionism
+Impressionism emerged as an art movement in the late 19th century, as several independent
+painters began painting scenes in the open air, instead of closed studios, in quick, 'broken' brush
+strokes, that allowed them to capture ephemeral details in a scene, like the sun's light and
+its effects on the landscape.
+
+Impressionist paintings emphasize the colors and light of a scene, over details, lines
+and contours. The result is an aesthetic unlike any of the time; capturing the beauty of sunshine,
+the colors of nature, focusing on the overall atmosphere of the subject instead of maximizing
+realism and detail.
+
+#figure(
+  image("Alfred_Sisley_001.jpg", width: 60%),
+  caption: [#emph("View of the Canal Saint-Martin") Alfred Sinsley]
+)
+
+=== Minimalism
+
+Minimalism seeks to represent a subject in its essence, the smallest possible representative
+elements, after removing all non-essential concepts or details. Some minimalist artists have stated that their works are explicitly 'objective', stripped of
+all self-expression.
+
+Minimalism, and other post-modern art movements, are more greatly open to interpretation, compared to eariler styles and aesthetics. When there is
+minimal information conveyed in the work, many people will inject their own in their interpretation.
+It could be argued that each person sees a slightly different piece, changed by their personal
+experiences, opinions, and morals.
+
+#figure(
+  image("TheBeatles68LP.jpg", width: 60%),
+  caption: [Cover of The Beatles' #emph("White Album"), by Richard Hamilton]
+)
+
 = #piece
 
 Like Sol LeWitt, I wanted to try and make the art a collaborative process, not just during
@@ -194,20 +230,26 @@ it as you blow into the microphone. The sketch has the singular purpose of showi
   caption: [SoMoS main sketch]
 )
 
-= Conclusions
+= Discussion
 
-My original intention was to make a piece that would focuse on the sound, placing a higher responsibility on the participant to create
+The end result of this work was a piece that combines several art movements. The main sketch is
+a landscape represented by simple lines and colors. For an impressionist style, I wanted light to play
+a big part in evoking a feeling of peace and beauty, so I designed gradients that would
+shift as the sun and moon rotated around the scene. The light affected the outlines
+of the hills so that the scene would feel coherent.
+
+The phone's sketch is a different style. I wanted something in the minimalistic and abstract style to show the 'player'
+direct feedback of their actions. The cube in the middle shows the rotation of the phone, and
+the rotating dots spin if the microphone is blown at. Every element of the scene has this purpose.
+
+My original intention was to make a piece that would focus on the sound, placing a higher responsibility on the participant to create
 music. However, over the course of development the idea shifted into making an interactive art piece, focusing on the novel use of a phone
 to interface with the piece. While I don't inherently regret that, I would've liked to make an actual collaborative art piece like
 Sol LeWitt.
-
-The exhibition was constrained by time and equipment. My laptop was only able to go so loud, and there were a lot of other people in the room
-making sound with their computers. I feel I was unable to fulfill the purpose of the piece, to give power to the audience to create art. However,
-I did make them participate in it, and that means something to me.
 
 I saw other people's works implemented their inspirations more explicitly into their work. While I adapted some techniques of my inspirations,
 especially the use and transformation of noise, I took my own direction when it came to the spirit and intention of the piece. Most of the artists
 I used for inspiration in my portfolio defined their works by the algorithm used to draw them. I, on the other hand, started with a vision for
 a scene and used whatever means necessary to render it to the screen. Not a lot was 'generated', per se, rather it was drawn according to
-hard-coded specifications.
+hard-coded specifications. This original vision was inspired by Charles O' Rear's picture, #emph("Bliss"). 
 
